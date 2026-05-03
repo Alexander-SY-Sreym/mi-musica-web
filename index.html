@@ -4,6 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EAL Music</title>
+  <meta name="theme-color" content="#070B14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EAL Music">
+  <link rel="manifest" id="pwa-manifest">
+  <script>
+    // PWA Manifest inline
+    const manifest = {
+      name: "EAL Music", short_name: "EAL Music",
+      description: "Tu biblioteca musical en la nube",
+      start_url: "./", display: "standalone",
+      background_color: "#070B14", theme_color: "#6366F1",
+      orientation: "portrait",
+      icons: [
+        { src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='url(%23g)'/><text x='12' y='150' font-family='Georgia' font-size='120' font-weight='900' fill='white' opacity='.14'>EAL</text><text x='96' y='110' font-family='Times New Roman' font-size='160' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-40 96 96)'>𝄞</text><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%234F46E5'/><stop offset='100%' stop-color='%237C3AED'/></linearGradient></defs></svg>`),
+          sizes: "192x192", type: "image/svg+xml" }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    document.getElementById ? null : null;
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+    });
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -243,6 +268,94 @@
       padding:7px 16px; border-radius:12px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
     .eq-toggle.on { background:rgba(99,102,241,0.2); border-color:var(--accent); color:#818CF8; }
     .eq-toggle.danger.on { background:rgba(239,68,68,0.15); border-color:var(--danger); color:#F87171; }
+    /* ── LETRAS PANEL ── */
+    #lyrics-panel {
+      position:fixed; inset:0; background:rgba(5,8,18,0.97); z-index:70;
+      display:none; flex-direction:column; padding:20px;
+      overflow-y:auto;
+    }
+    #lyrics-panel.open { display:flex; }
+    .lyrics-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-shrink:0; }
+    .lyrics-header h3 { font-size:1rem; font-weight:700; color:#818CF8; }
+    .lyrics-close { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:1.3rem; }
+    .lyrics-cover { width:120px; height:120px; border-radius:16px; overflow:hidden; flex-shrink:0;
+      background:linear-gradient(135deg,#4F46E5,#7C3AED); display:flex; align-items:center;
+      justify-content:center; margin:0 auto 16px; box-shadow:0 8px 32px rgba(99,102,241,0.4); }
+    .lyrics-cover img { width:100%; height:100%; object-fit:cover; }
+    .lyrics-title { font-size:1.1rem; font-weight:800; text-align:center; margin-bottom:4px; }
+    .lyrics-artist { font-size:0.85rem; color:var(--muted); text-align:center; margin-bottom:20px; }
+    #lyrics-text { font-size:0.95rem; line-height:2.2; color:#C4C9D4; white-space:pre-line;
+      text-align:center; padding:0 8px; }
+    #lyrics-text .active-line { color:#818CF8; font-size:1.05rem; font-weight:700; }
+    .lyrics-loading { text-align:center; color:var(--muted); padding:40px 0; font-size:0.9rem; }
+    .lyrics-tabs { display:flex; gap:8px; margin-bottom:16px; flex-shrink:0; }
+    .ltab { background:var(--surface); border:1px solid var(--border); color:var(--muted);
+      padding:7px 18px; border-radius:20px; cursor:pointer; font-size:0.8rem; font-weight:600; transition:all 0.2s; }
+    .ltab.active { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border-color:transparent; }
+
+    /* ── YT DOWNLOADER ── */
+    #yt-panel {
+      position:fixed; inset:0; background:rgba(5,8,18,0.97); z-index:70;
+      display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; gap:16px;
+    }
+    #yt-panel.open { display:flex; }
+    .yt-box { background:var(--surface); border:1px solid rgba(99,102,241,0.3); border-radius:20px;
+      padding:28px; width:min(100%,460px); display:flex; flex-direction:column; gap:16px; }
+    .yt-box h3 { font-size:1rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
+    .yt-input-row { display:flex; gap:8px; }
+    .yt-input { background:var(--surface2); border:1px solid var(--border); color:var(--text);
+      padding:12px 16px; border-radius:12px; flex:1; font-size:0.9rem; outline:none; }
+    .yt-input:focus { border-color:var(--accent); }
+    .btn-yt-search { background:linear-gradient(135deg,#FF0000,#CC0000); color:#fff; border:none;
+      padding:12px 18px; border-radius:12px; font-size:0.85rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+    #yt-result { display:none; flex-direction:column; gap:12px; }
+    .yt-thumb { width:100%; border-radius:12px; overflow:hidden; position:relative; }
+    .yt-thumb img { width:100%; border-radius:12px; }
+    .yt-info h4 { font-size:0.95rem; font-weight:700; color:var(--text); }
+    .yt-info p { font-size:0.78rem; color:var(--muted); margin-top:4px; }
+    .btn-yt-dl { background:linear-gradient(135deg,var(--accent),var(--cyan)); color:#fff; border:none;
+      padding:12px 24px; border-radius:12px; font-size:0.88rem; font-weight:700; cursor:pointer; width:100%; }
+    .yt-close { background:transparent; border:1px solid var(--border); color:var(--muted);
+      padding:10px; border-radius:12px; cursor:pointer; font-size:0.85rem; width:100%; transition:all 0.2s; }
+
+    /* ── CLAUDE ANALYSIS ── */
+    #claude-panel {
+      position:fixed; inset:0; background:rgba(5,8,18,0.97); z-index:70;
+      display:none; flex-direction:column; padding:20px; overflow-y:auto; gap:14px;
+    }
+    #claude-panel.open { display:flex; }
+    .claude-header { display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .claude-header h3 { font-size:0.95rem; font-weight:700; color:#818CF8; }
+    #claude-content { font-size:0.88rem; line-height:1.8; color:#C4C9D4; }
+    #claude-content h4 { color:#818CF8; font-size:0.9rem; margin:12px 0 6px; }
+    #claude-content .chip { display:inline-block; background:rgba(99,102,241,0.15);
+      border:1px solid rgba(99,102,241,0.3); color:#A5B4FC; padding:3px 10px;
+      border-radius:20px; font-size:0.75rem; margin:3px; }
+    .btn-claude-analyze { background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff; border:none; padding:10px 20px; border-radius:12px;
+      font-size:0.85rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+    .btn-claude-analyze:hover { opacity:0.85; }
+    .btn-claude-analyze:disabled { opacity:0.4; cursor:not-allowed; }
+
+    /* ── BOTONES EXTRA EN HEADER ── */
+    .header-actions { display:flex; gap:6px; align-items:center; }
+    .hbtn { background:transparent; border:1px solid var(--border); color:var(--muted);
+      width:34px; height:34px; border-radius:10px; cursor:pointer; display:flex;
+      align-items:center; justify-content:center; font-size:0.9rem; transition:all 0.2s; }
+    .hbtn:hover { border-color:var(--accent); color:#818CF8; }
+
+    /* ── INSTALL BANNER ── */
+    #install-banner {
+      display:none; background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));
+      border:1px solid rgba(99,102,241,0.3); border-radius:14px; padding:12px 16px;
+      margin-bottom:16px; align-items:center; gap:12px;
+    }
+    #install-banner.show { display:flex; }
+    #install-banner p { font-size:0.82rem; color:var(--text); flex:1; }
+    .btn-install { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff;
+      border:none; padding:8px 18px; border-radius:10px; font-size:0.8rem; font-weight:700; cursor:pointer; }
+    .btn-install-close { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:1rem; }
+
     .btn-move { background:transparent; border:1px solid var(--border); color:#818CF8;
       cursor:pointer; width:34px; height:34px; border-radius:10px;
       display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
@@ -338,11 +451,22 @@
     <div class="user-info">
       <img id="user-photo" src="" alt="">
       <span id="user-name"></span>
-      <button class="btn-logout" onclick="signOut()">Salir</button>
+      <div class="header-actions">
+        <button class="hbtn" onclick="openYT()" title="Descargar de YouTube">▶️</button>
+        <button class="hbtn" id="btn-install" style="display:none" onclick="installPWA()" title="Instalar app">📲</button>
+        <button class="btn-logout" onclick="signOut()">Salir</button>
+      </div>
     </div>
   </header>
 
   <main>
+    <!-- Install Banner -->
+    <div id="install-banner">
+      <span style="font-size:1.4rem">📲</span>
+      <p><strong>Instala EAL Music</strong> en tu celular para usarla sin internet y en segundo plano.</p>
+      <button class="btn-install" onclick="installPWA()">Instalar</button>
+      <button class="btn-install-close" onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+    </div>
     <div class="upload-card">
       <h2>Subir canciones</h2>
       <div class="upload-controls">
@@ -411,6 +535,61 @@
   </div>
 </div>
 
+<!-- PANEL LETRAS -->
+<div id="lyrics-panel">
+  <div class="lyrics-header">
+    <h3>🎵 Letras</h3>
+    <button class="lyrics-close" onclick="closeLyrics()">✕</button>
+  </div>
+  <div class="lyrics-cover" id="lyrics-cover">
+    <svg width="40" height="40" viewBox="0 0 80 80"><use href="#eal-logo"/></svg>
+  </div>
+  <div class="lyrics-title" id="lyrics-title">—</div>
+  <div class="lyrics-artist" id="lyrics-artist"></div>
+  <div class="lyrics-tabs">
+    <button class="ltab active" onclick="switchLyricsTab('lyrics',this)">Letras</button>
+    <button class="ltab" onclick="switchLyricsTab('analysis',this)">🤖 Análisis IA</button>
+    <button class="ltab" onclick="switchLyricsTab('recommend',this)">💡 Recomendaciones</button>
+  </div>
+  <div id="lyrics-text"><div class="lyrics-loading">Buscando letras...</div></div>
+</div>
+
+<!-- PANEL YOUTUBE -->
+<div id="yt-panel">
+  <div class="yt-box">
+    <h3>▶️ Descargar de YouTube</h3>
+    <p style="font-size:0.8rem;color:var(--muted)">Pega el link de YouTube y descarga el MP3</p>
+    <div class="yt-input-row">
+      <input type="text" class="yt-input" id="yt-url" placeholder="https://youtube.com/watch?v=...">
+      <button class="btn-yt-search" onclick="fetchYTInfo()">Buscar</button>
+    </div>
+    <div id="yt-result">
+      <div class="yt-thumb"><img id="yt-thumb-img" src="" alt=""></div>
+      <div class="yt-info">
+        <h4 id="yt-title">—</h4>
+        <p id="yt-duration">—</p>
+      </div>
+      <button class="btn-yt-dl" id="btn-yt-dl" onclick="downloadFromYT()">⬇ Descargar MP3</button>
+    </div>
+    <button class="yt-close" onclick="closeYT()">Cancelar</button>
+  </div>
+</div>
+
+<!-- PANEL CLAUDE AI -->
+<div id="claude-panel">
+  <div class="claude-header">
+    <h3>🤖 EAL IA</h3>
+    <button class="lyrics-close" onclick="document.getElementById('claude-panel').classList.remove('open')">✕</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+    <button class="btn-claude-analyze" onclick="claudeAction('mood')">🎭 Mood</button>
+    <button class="btn-claude-analyze" onclick="claudeAction('recommend')">💡 Recomendar</button>
+    <button class="btn-claude-analyze" onclick="claudeAction('genre')">🎸 Género</button>
+    <button class="btn-claude-analyze" onclick="claudeAction('playlist')">📋 Crear playlist</button>
+  </div>
+  <div id="claude-content"><p style="color:var(--muted);font-size:0.85rem">Elige una acción para analizar tu biblioteca musical.</p></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div id="player-bar">
@@ -450,6 +629,9 @@
   <!-- Controles derecha -->
   <div class="player-right">
     <canvas id="mini-eq-canvas"></canvas>
+    <button class="pctrl-sm" onclick="openLyrics()" title="Letras">🎵</button>
+    <button class="pctrl-sm" onclick="shareSong()" title="Compartir">🔗</button>
+    <button class="pctrl-sm" onclick="document.getElementById('claude-panel').classList.add('open')" title="IA">🤖</button>
     <button class="pctrl-sm" onclick="toggleEQ()" title="Ecualizador">🎛</button>
     <div class="volume-wrap">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--muted)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
@@ -1049,6 +1231,10 @@
     if (audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
     audio.play();
     document.getElementById('player-bar').classList.add('active');
+
+    // Media Session para segundo plano
+    updateMediaSession(nombre, portada);
+
     renderSongs();
   }
 
@@ -1067,7 +1253,217 @@
     return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
   }
 
-  function showToast(msg,isError=false) {
+  // ── CLAUDE API KEY ──
+  const CLAUDE_API_KEY = 'TU_API_KEY_AQUI'; // Reemplaza con tu API key
+
+  // ── PWA Install ──
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e;
+    document.getElementById('btn-install').style.display = 'flex';
+    document.getElementById('install-banner').classList.add('show');
+  });
+  function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('install-banner').classList.remove('show');
+      document.getElementById('btn-install').style.display = 'none';
+    });
+  }
+
+  // ── Media Session API (segundo plano Android) ──
+  function updateMediaSession(nombre, portada) {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: nombre, artist: 'EAL Music', album: 'Mi Biblioteca',
+      artwork: portada ? [{ src: portada, sizes: '512x512', type: 'image/jpeg' }]
+        : [{ src: 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%234F46E5'/><text x='30' y='400' font-family='Georgia' font-size='320' font-weight='900' fill='white' opacity='.15'>EAL</text><text x='256' y='290' font-family='Times New Roman' font-size='430' fill='white' text-anchor='middle' dominant-baseline='middle' transform='rotate(-40 256 256)'>𝄞</text></svg>`), sizes: '512x512', type: 'image/svg+xml' }]
+    });
+    navigator.mediaSession.setActionHandler('play', () => { document.getElementById('player-audio').play(); updatePlayBtn(true); });
+    navigator.mediaSession.setActionHandler('pause', () => { document.getElementById('player-audio').pause(); updatePlayBtn(false); });
+    navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+    navigator.mediaSession.setActionHandler('nexttrack', nextSong);
+    navigator.mediaSession.setActionHandler('seekto', e => { document.getElementById('player-audio').currentTime = e.seekTime; });
+  }
+
+  // ── LETRAS ──
+  let currentLyricsTab = 'lyrics';
+  let currentSongForLyrics = null;
+
+  function openLyrics() {
+    if (!currentPlayingId) { showToast('Primero reproduce una canción', true); return; }
+    const song = allSongs.find(s=>s.id===currentPlayingId);
+    if (!song) return;
+    currentSongForLyrics = song;
+    document.getElementById('lyrics-title').textContent = song.nombre;
+    const cover = document.getElementById('lyrics-cover');
+    cover.innerHTML = song.portada
+      ? `<img src="${song.portada}" alt="">`
+      : `<svg width="40" height="40" viewBox="0 0 80 80"><use href="#eal-logo"/></svg>`;
+    document.getElementById('lyrics-panel').classList.add('open');
+    switchLyricsTab('lyrics', document.querySelector('.ltab'));
+  }
+
+  function closeLyrics() { document.getElementById('lyrics-panel').classList.remove('open'); }
+
+  async function switchLyricsTab(tab, btn) {
+    currentLyricsTab = tab;
+    document.querySelectorAll('.ltab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    const content = document.getElementById('lyrics-text');
+    content.innerHTML = '<div class="lyrics-loading">Cargando...</div>';
+    if (tab === 'lyrics') await fetchLyrics();
+    else if (tab === 'analysis') await claudeLyricsAnalysis();
+    else if (tab === 'recommend') await claudeRecommend();
+  }
+
+  async function fetchLyrics() {
+    const song = currentSongForLyrics;
+    if (!song) return;
+    const content = document.getElementById('lyrics-text');
+    // Parsear artista y título del nombre
+    let artist = '', title = song.nombre;
+    if (song.nombre.includes(' - ')) {
+      [artist, title] = song.nombre.split(' - ').map(s=>s.trim());
+    }
+    try {
+      // API gratuita de letras
+      const url = artist
+        ? `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`
+        : `https://api.lyrics.ovh/suggest/${encodeURIComponent(title)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.lyrics) {
+        content.innerHTML = `<div style="text-align:center;color:#64748B;font-size:0.75rem;margin-bottom:16px">Fuente: lyrics.ovh</div>` + data.lyrics.replace(/\n/g,'<br>');
+      } else if (data.data && data.data[0]) {
+        // Sugerencia encontrada
+        const s = data.data[0];
+        const res2 = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(s.artist.name)}/${encodeURIComponent(s.title)}`);
+        const d2 = await res2.json();
+        content.innerHTML = d2.lyrics ? d2.lyrics.replace(/\n/g,'<br>') : '<p style="color:var(--muted);text-align:center">No se encontraron letras.<br>Prueba con el formato "Artista - Título"</p>';
+      } else {
+        content.innerHTML = '<p style="color:var(--muted);text-align:center">No se encontraron letras.<br>Renombra la canción como "Artista - Título"</p>';
+      }
+    } catch(e) {
+      content.innerHTML = '<p style="color:var(--muted);text-align:center">Error al buscar letras. Verifica tu conexión.</p>';
+    }
+  }
+
+  async function claudeLyricsAnalysis() {
+    const song = currentSongForLyrics;
+    const content = document.getElementById('lyrics-text');
+    content.innerHTML = '<div class="lyrics-loading">Analizando con IA...</div>';
+    const prompt = `Analiza esta canción: "${song.nombre}". Dame: 1) Mood/emoción principal, 2) Género musical probable, 3) Tempo estimado (lento/medio/rápido), 4) Para qué momento es ideal escucharla. Responde en español, de forma concisa y con emojis.`;
+    const result = await callClaudeAPI(prompt);
+    content.innerHTML = result ? result.replace(/\n/g,'<br>') : '<p style="color:var(--muted)">Error al analizar. Verifica tu API key.</p>';
+  }
+
+  async function claudeRecommend() {
+    const content = document.getElementById('lyrics-text');
+    content.innerHTML = '<div class="lyrics-loading">Generando recomendaciones...</div>';
+    const songList = allSongs.slice(0,20).map(s=>s.nombre).join(', ');
+    const prompt = `Mi biblioteca musical incluye: ${songList}. Basándote en esto, recomiéndame 5 canciones similares que podría disfrutar. Para cada una indica artista, título y por qué la recomendás. Responde en español con emojis.`;
+    const result = await callClaudeAPI(prompt);
+    content.innerHTML = result ? result.replace(/\n/g,'<br>') : '<p style="color:var(--muted)">Error. Verifica tu API key de Claude.</p>';
+  }
+
+  async function claudeAction(action) {
+    const content = document.getElementById('claude-content');
+    content.innerHTML = '<div class="lyrics-loading">Analizando...</div>';
+    const songList = allSongs.map(s=>s.nombre).join(', ');
+    const prompts = {
+      mood: `Analiza el mood general de esta biblioteca musical: ${songList}. Clasifica las canciones por emociones y dame un resumen del perfil musical. Usa emojis y sé conciso.`,
+      recommend: `Basándote en esta biblioteca: ${songList}. Recomienda 8 canciones nuevas que encajarían perfectamente. Indica artista, título y razón.`,
+      genre: `Clasifica estas canciones por géneros musicales: ${songList}. Muestra porcentajes aproximados de cada género.`,
+      playlist: `Con estas canciones: ${songList}. Crea 3 playlists temáticas (ej: "Para trabajar", "Para el gym", "Para relajarse"). Indica qué canciones van en cada una.`
+    };
+    const result = await callClaudeAPI(prompts[action]);
+    content.innerHTML = result ? result.replace(/\n/g,'<br>') : '<p style="color:var(--muted)">Error. Agrega tu API key de Claude en el código.</p>';
+  }
+
+  async function callClaudeAPI(prompt) {
+    if (!CLAUDE_API_KEY || CLAUDE_API_KEY === 'TU_API_KEY_AQUI') {
+      return '⚠️ Agrega tu API key de Claude en el código (variable CLAUDE_API_KEY).';
+    }
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'x-api-key':CLAUDE_API_KEY,
+          'anthropic-version':'2023-06-01' },
+        body: JSON.stringify({
+          model:'claude-haiku-4-5-20251001', max_tokens:800,
+          messages:[{ role:'user', content:prompt }]
+        })
+      });
+      const data = await res.json();
+      return data.content?.[0]?.text || null;
+    } catch(e) { return null; }
+  }
+
+  // ── COMPARTIR ──
+  async function shareSong() {
+    const song = allSongs.find(s=>s.id===currentPlayingId);
+    if (!song) { showToast('Primero reproduce una canción', true); return; }
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: song.nombre, text: `Escuchando: ${song.nombre} en EAL Music`, url: song.url });
+      } catch(e) { if (e.name!=='AbortError') copyToClipboard(song.url); }
+    } else { copyToClipboard(song.url); }
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(()=>showToast('Link copiado ✓')).catch(()=>showToast('No se pudo copiar',true));
+  }
+
+  // ── YOUTUBE DOWNLOADER ──
+  let ytVideoId = null;
+  function openYT() { document.getElementById('yt-panel').classList.add('open'); }
+  function closeYT() { document.getElementById('yt-panel').classList.remove('open'); document.getElementById('yt-result').style.display='none'; }
+
+  async function fetchYTInfo() {
+    const url = document.getElementById('yt-url').value.trim();
+    if (!url) return;
+    const match = url.match(/(?:v=|youtu\.be\/)([^&\n?]+)/);
+    if (!match) { showToast('URL de YouTube inválida', true); return; }
+    ytVideoId = match[1];
+    document.getElementById('yt-thumb-img').src = `https://img.youtube.com/vi/${ytVideoId}/mqdefault.jpg`;
+    document.getElementById('yt-title').textContent = 'Video de YouTube';
+    document.getElementById('yt-duration').textContent = `ID: ${ytVideoId}`;
+    document.getElementById('yt-result').style.display = 'flex';
+  }
+
+  async function downloadFromYT() {
+    if (!ytVideoId) return;
+    const btn = document.getElementById('btn-yt-dl');
+    btn.textContent = 'Procesando...'; btn.disabled = true;
+    // Usar API gratuita y2mate/cobalt compatible
+    try {
+      // cobalt.tools API (abierta, sin key)
+      const res = await fetch('https://co.wuk.sh/api/json', {
+        method:'POST',
+        headers:{'Accept':'application/json','Content-Type':'application/json'},
+        body: JSON.stringify({ url:`https://youtube.com/watch?v=${ytVideoId}`, aFormat:'mp3', isAudioOnly:true })
+      });
+      const data = await res.json();
+      if (data.url || data.stream) {
+        const dlUrl = data.url || data.stream;
+        const a = document.createElement('a'); a.href=dlUrl; a.download='cancion.mp3'; a.click();
+        showToast('Descarga iniciada ✓');
+      } else { showToast('Error: '+JSON.stringify(data), true); }
+    } catch(e) {
+      // Fallback: abrir en nueva pestaña
+      window.open(`https://www.y2mate.com/youtube-mp3/${ytVideoId}`, '_blank');
+      showToast('Abriendo descargador externo...');
+    }
+    btn.textContent = '⬇ Descargar MP3'; btn.disabled = false;
+  }
+
+  // ── Actualizar playSong para Media Session ──
+  const _originalPlaySong = playSong;
+
+
     const t=document.getElementById('toast');
     t.textContent=msg; t.className='toast show'+(isError?' error':'');
     setTimeout(()=>t.className='toast',3000);
