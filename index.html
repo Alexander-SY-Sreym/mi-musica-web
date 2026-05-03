@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Música</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #fff;
+      min-height: 100vh;
+    }
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 24px;
+    }
+    #login-screen h1 { font-size: 2.5rem; color: #1DB954; }
+    #login-screen p { color: #888; font-size: 1rem; }
+    .btn-google {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: opacity 0.2s;
+    }
+    .btn-google:hover { opacity: 0.9; }
+    #app-screen { display: none; }
+    header {
+      background: #1a1a1a;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 1.4rem; color: #1DB954; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-info img { width: 36px; height: 36px; border-radius: 50%; }
+    .user-info span { font-size: 0.9rem; color: #aaa; }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-logout:hover { border-color: #fff; color: #fff; }
+    main { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .upload-section {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 2px dashed #333;
+      transition: border-color 0.2s;
+    }
+    .upload-section:hover { border-color: #1DB954; }
+    .upload-section h2 { margin-bottom: 16px; font-size: 1.1rem; color: #ccc; }
+    .upload-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    #folder-select {
+      background: #282828;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      min-width: 160px;
+    }
+    #new-folder-input {
+      background: #282828;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      width: 180px;
+    }
+    #new-folder-input::placeholder { color: #666; }
+    .btn-primary {
+      background: #1DB954;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    #file-input { display: none; }
+    .file-label {
+      background: #282828;
+      color: #ccc;
+      border: 1px solid #444;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .file-label:hover { background: #333; }
+    #progress-bar-container {
+      display: none;
+      margin-top: 16px;
+    }
+    #progress-text { font-size: 0.85rem; color: #888; margin-bottom: 6px; }
+    #progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      background: #1DB954;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .search-bar {
+      background: #282828;
+      border: none;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 30px;
+      width: 100%;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    .search-bar::placeholder { color: #555; }
+    .folder-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .folder-tab {
+      background: #282828;
+      color: #aaa;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .folder-tab.active, .folder-tab:hover {
+      background: #1DB954;
+      color: #000;
+      font-weight: 700;
+    }
+    #songs-list { display: flex; flex-direction: column; gap: 4px; }
+    .song-item {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: background 0.2s;
+    }
+    .song-item:hover { background: #282828; }
+    .song-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(29,185,84,0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.2rem;
+    }
+    .song-info { flex: 1; min-width: 0; }
+    .song-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .song-folder {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 2px;
+    }
+    .song-date { font-size: 0.75rem; color: #555; white-space: nowrap; }
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: #555;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+    .btn-delete:hover { color: #e74c3c; }
+    .empty-state {
+      text-align: center;
+      padding: 60px 0;
+      color: #444;
+    }
+    .empty-state p { margin-top: 8px; font-size: 0.9rem; }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1DB954;
+      color: #000;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #e74c3c; color: #fff; }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <span style="font-size:5rem">🎵</span>
+  <h1>Mi Música</h1>
+  <p>Tu biblioteca musical en la nube</p>
+  <button class="btn-google" onclick="signInWithGoogle()">
+    <svg width="20" height="20" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+    Continuar con Google
+  </button>
+</div>
+
+<div id="app-screen">
+  <header>
+    <h1>🎵 Mi Música</h1>
+    <div class="user-info">
+      <img id="user-photo" src="" alt="">
+      <span id="user-name"></span>
+      <button class="btn-logout" onclick="signOut()">Salir</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="upload-section">
+      <h2>Subir canciones</h2>
+      <div class="upload-controls">
+        <label class="file-label" for="file-input">📁 Seleccionar MP3</label>
+        <input type="file" id="file-input" accept=".mp3,.m4a,.flac,.wav" multiple>
+        <select id="folder-select">
+          <option value="General">General</option>
+        </select>
+        <input type="text" id="new-folder-input" placeholder="Nueva carpeta...">
+        <button class="btn-primary" onclick="createFolder()">+ Crear</button>
+        <button class="btn-primary" id="upload-btn" onclick="uploadFiles()" disabled>⬆ Subir</button>
+      </div>
+      <div id="progress-bar-container">
+        <div id="progress-text">Subiendo...</div>
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <input type="text" class="search-bar" placeholder="🔍 Buscar canciones..." oninput="filterSongs(this.value)">
+    <div class="folder-tabs" id="folder-tabs">
+      <button class="folder-tab active" onclick="filterByFolder('todas', this)">Todas</button>
+    </div>
+    <div id="songs-list"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBoFllNibVJcVE4HecD-0VHCERyxzojQTo",
+    authDomain: "mi-musica-ale.firebaseapp.com",
+    projectId: "mi-musica-ale",
+    storageBucket: "mi-musica-ale.firebasestorage.app",
+    messagingSenderId: "132593116859",
+    appId: "1:132593116859:web:5e3dc68394225478542b9e"
+  };
+
+  const CLOUDINARY_CLOUD = 'dwzyrfqa8';
+  const CLOUDINARY_PRESET = 'preajuste_musica';
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let allSongs = [];
+  let selectedFolder = 'todas';
+  let searchQuery = '';
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      document.getElementById('user-photo').src = user.photoURL || '';
+      document.getElementById('user-name').textContent = user.displayName || user.email;
+      loadSongs();
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-screen').style.display = 'none';
+    }
+  });
+
+  function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+
+  function signOut() {
+    auth.signOut();
+  }
+
+  document.getElementById('file-input').addEventListener('change', function() {
+    document.getElementById('upload-btn').disabled = this.files.length === 0;
+  });
+
+  async function uploadFiles() {
+    const files = document.getElementById('file-input').files;
+    const folder = document.getElementById('folder-select').value;
+    if (!files.length) return;
+
+    const btn = document.getElementById('upload-btn');
+    btn.disabled = true;
+    document.getElementById('progress-bar-container').style.display = 'block';
+
+    let uploaded = 0;
+    for (const file of files) {
+      document.getElementById('progress-text').textContent =
+        `Subiendo ${file.name} (${uploaded + 1}/${files.length})...`;
+      document.getElementById('progress-fill').style.width =
+        `${(uploaded / files.length) * 100}%`;
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_PRESET);
+        formData.append('resource_type', 'raw');
+        formData.append('folder', 'musica');
+
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`,
+          { method: 'POST', body: formData }
+        );
+        const data = await res.json();
+
+        if (data.secure_url) {
+          await db.collection('usuarios')
+            .doc(currentUser.uid)
+            .collection('canciones')
+            .add({
+              nombre: file.name.replace(/\.(mp3|m4a|flac|wav)$/i, ''),
+              url: data.secure_url,
+              publicId: data.public_id,
+              artista: 'Artista desconocido',
+              album: 'Sin álbum',
+              carpeta: folder,
+              fechaSubida: firebase.firestore.Timestamp.now()
+            });
+          uploaded++;
+        }
+      } catch (e) {
+        showToast(`Error subiendo ${file.name}`, true);
+      }
+    }
+
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-text').textContent = '¡Listo!';
+    setTimeout(() => {
+      document.getElementById('progress-bar-container').style.display = 'none';
+      document.getElementById('progress-fill').style.width = '0%';
+    }, 2000);
+
+    btn.disabled = false;
+    document.getElementById('file-input').value = '';
+    showToast(`${uploaded} canción(es) subida(s) exitosamente`);
+  }
+
+  function createFolder() {
+    const name = document.getElementById('new-folder-input').value.trim();
+    if (!name) return;
+    addFolderOption(name);
+    document.getElementById('folder-select').value = name;
+    document.getElementById('new-folder-input').value = '';
+    showToast(`Carpeta "${name}" creada`);
+  }
+
+  function addFolderOption(name) {
+    const select = document.getElementById('folder-select');
+    if ([...select.options].some(o => o.value === name)) return;
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+
+    const tabs = document.getElementById('folder-tabs');
+    if (!tabs.querySelector(`[data-folder="${name}"]`)) {
+      const btn = document.createElement('button');
+      btn.className = 'folder-tab';
+      btn.textContent = name;
+      btn.dataset.folder = name;
+      btn.onclick = () => filterByFolder(name, btn);
+      tabs.appendChild(btn);
+    }
+  }
+
+  function loadSongs() {
+    db.collection('usuarios')
+      .doc(currentUser.uid)
+      .collection('canciones')
+      .orderBy('fechaSubida', 'desc')
+      .onSnapshot(snap => {
+        allSongs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const folders = [...new Set(allSongs.map(s => s.carpeta || 'General'))];
+        folders.forEach(addFolderOption);
+        renderSongs();
+      });
+  }
+
+  function renderSongs() {
+    let songs = allSongs;
+    if (selectedFolder !== 'todas') {
+      songs = songs.filter(s => (s.carpeta || 'General') === selectedFolder);
+    }
+    if (searchQuery) {
+      songs = songs.filter(s =>
+        s.nombre.toLowerCase().includes(searchQuery) ||
+        (s.artista || '').toLowerCase().includes(searchQuery)
+      );
+    }
+
+    const list = document.getElementById('songs-list');
+    if (!songs.length) {
+      list.innerHTML = `<div class="empty-state">🎵<p>No hay canciones aquí aún</p></div>`;
+      return;
+    }
+
+    list.innerHTML = songs.map(song => `
+      <div class="song-item">
+        <div class="song-icon">🎵</div>
+        <div class="song-info">
+          <div class="song-name">${song.nombre}</div>
+          <div class="song-folder">📁 ${song.carpeta || 'General'}</div>
+        </div>
+        <div class="song-date">${formatDate(song.fechaSubida)}</div>
+        <button class="btn-delete" onclick="deleteSong('${song.id}', '${song.nombre}')" title="Eliminar">🗑</button>
+      </div>
+    `).join('');
+  }
+
+  function filterByFolder(folder, btn) {
+    selectedFolder = folder;
+    document.querySelectorAll('.folder-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderSongs();
+  }
+
+  function filterSongs(query) {
+    searchQuery = query.toLowerCase();
+    renderSongs();
+  }
+
+  async function deleteSong(id, nombre) {
+    if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+    await db.collection('usuarios').doc(currentUser.uid).collection('canciones').doc(id).delete();
+    showToast(`"${nombre}" eliminada`);
+  }
+
+  function formatDate(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+</script>
+</body>
+</html>
