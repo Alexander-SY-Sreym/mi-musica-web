@@ -3,283 +3,198 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Música</title>
+  <title>Wavely – Mi Música</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #121212;
-      color: #fff;
-      min-height: 100vh;
+    :root {
+      --accent: #3B82F6;
+      --accent-light: #60A5FA;
+      --accent-glow: rgba(59,130,246,0.2);
+      --accent2: #06B6D4;
+      --bg: #0A0F1E;
+      --bg2: #111827;
+      --bg3: #1F2937;
+      --surface: #1E293B;
+      --border: rgba(255,255,255,0.07);
+      --text: #F1F5F9;
+      --muted: #64748B;
+      --danger: #EF4444;
     }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* LOGIN */
     #login-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      gap: 24px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:100vh; gap:28px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.12) 0%, transparent 65%);
     }
-    #login-screen h1 { font-size: 2.5rem; color: #1DB954; }
-    #login-screen p { color: #888; font-size: 1rem; }
+    .logo-wrap { display:flex; align-items:center; gap:16px; }
+    .logo-name { font-size:2.2rem; font-weight:700; letter-spacing:-1px;
+      background:linear-gradient(135deg,#60A5FA,#06B6D4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .logo-tag { font-size:0.82rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
     .btn-google {
-      background: #fff;
-      color: #333;
-      border: none;
-      padding: 14px 32px;
-      border-radius: 30px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: opacity 0.2s;
+      background:#fff; color:#1a1a1a; border:none; padding:14px 36px;
+      border-radius:50px; font-size:1rem; font-weight:600; cursor:pointer;
+      display:flex; align-items:center; gap:10px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.4); transition:transform 0.15s,box-shadow 0.15s;
     }
-    .btn-google:hover { opacity: 0.9; }
-    #app-screen { display: none; }
+    .btn-google:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.5); }
+
+    /* APP */
+    #app-screen { display:none; }
     header {
-      background: #1a1a1a;
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      background:rgba(10,15,30,0.9); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      padding:14px 28px; display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:20;
     }
-    header h1 { font-size: 1.4rem; color: #1DB954; }
-    .user-info { display: flex; align-items: center; gap: 12px; }
-    .user-info img { width: 36px; height: 36px; border-radius: 50%; }
-    .user-info span { font-size: 0.9rem; color: #aaa; }
-    .btn-logout {
-      background: transparent;
-      border: 1px solid #444;
-      color: #aaa;
-      padding: 6px 14px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.85rem;
+    .header-logo { display:flex; align-items:center; gap:10px; }
+    .header-logo span { font-size:1.2rem; font-weight:700;
+      background:linear-gradient(135deg,#60A5FA,#06B6D4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .user-info { display:flex; align-items:center; gap:10px; }
+    .user-info img { width:34px; height:34px; border-radius:50%; border:2px solid var(--accent); }
+    .user-info span { font-size:0.83rem; color:var(--muted); }
+    .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted);
+      padding:6px 16px; border-radius:20px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+    .btn-logout:hover { border-color:var(--accent-light); color:var(--accent-light); }
+
+    main { max-width:860px; margin:0 auto; padding:28px 20px 100px; }
+
+    /* UPLOAD */
+    .upload-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:20px; padding:24px; margin-bottom:24px; position:relative; overflow:hidden;
     }
-    .btn-logout:hover { border-color: #fff; color: #fff; }
-    main { max-width: 900px; margin: 0 auto; padding: 24px; }
-    .upload-section {
-      background: #1a1a1a;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
-      border: 2px dashed #333;
-      transition: border-color 0.2s;
+    .upload-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
     }
-    .upload-section:hover { border-color: #1DB954; }
-    .upload-section h2 { margin-bottom: 16px; font-size: 1.1rem; color: #ccc; }
-    .upload-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    #folder-select {
-      background: #282828;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      min-width: 160px;
-    }
-    #new-folder-input {
-      background: #282828;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      width: 180px;
-    }
-    #new-folder-input::placeholder { color: #666; }
-    .btn-primary {
-      background: #1DB954;
-      color: #000;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-    #file-input { display: none; }
+    .upload-card h2 { font-size:0.8rem; font-weight:600; color:var(--muted);
+      text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px; }
+    .upload-controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .file-label {
-      background: #282828;
-      color: #ccc;
-      border: 1px solid #444;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.2s;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff; border:none; padding:10px 20px; border-radius:12px;
+      font-size:0.87rem; font-weight:600; cursor:pointer;
+      display:flex; align-items:center; gap:8px; transition:opacity 0.2s; white-space:nowrap;
     }
-    .file-label:hover { background: #333; }
-    #progress-bar-container {
-      display: none;
-      margin-top: 16px;
-    }
-    #progress-text { font-size: 0.85rem; color: #888; margin-bottom: 6px; }
-    #progress-bar {
-      width: 100%;
-      height: 6px;
-      background: #333;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    #progress-fill {
-      height: 100%;
-      background: #1DB954;
-      border-radius: 3px;
-      width: 0%;
-      transition: width 0.3s;
-    }
-    .search-bar {
-      background: #282828;
-      border: none;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 30px;
-      width: 100%;
-      font-size: 0.95rem;
-      margin-bottom: 16px;
-      outline: none;
-    }
-    .search-bar::placeholder { color: #555; }
-    .folder-tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-    .folder-tab {
-      background: #282828;
-      color: #aaa;
-      border: none;
-      padding: 6px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-    }
-    .folder-tab.active, .folder-tab:hover {
-      background: #1DB954;
-      color: #000;
-      font-weight: 700;
-    }
-    #songs-list { display: flex; flex-direction: column; gap: 4px; }
-    .song-item {
-      background: #1a1a1a;
-      border-radius: 10px;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      transition: background 0.2s;
-    }
-    .song-item:hover { background: #282828; }
-    .song-icon {
-      width: 44px;
-      height: 44px;
-      background: rgba(29,185,84,0.15);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 1.2rem;
-    }
-    .song-info { flex: 1; min-width: 0; }
-    .song-name {
-      font-size: 0.95rem;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .song-folder {
-      font-size: 0.8rem;
-      color: #666;
-      margin-top: 2px;
-    }
-    .song-date { font-size: 0.75rem; color: #555; white-space: nowrap; }
-    .btn-delete {
-      background: transparent;
-      border: none;
-      color: #555;
-      cursor: pointer;
-      font-size: 1.1rem;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: color 0.2s;
-    }
-    .btn-delete:hover { color: #e74c3c; }
-    .btn-play {
-      background: #1DB954;
-      border: none;
-      color: #000;
-      cursor: pointer;
-      font-size: 1rem;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: opacity 0.2s;
-    }
-    .btn-play:hover { opacity: 0.8; }
+    .file-label:hover { opacity:0.85; }
+    #file-input { display:none; }
+    .select-styled { background:var(--bg3); color:var(--text); border:1px solid var(--border);
+      padding:10px 14px; border-radius:12px; font-size:0.87rem; min-width:150px; outline:none; cursor:pointer; }
+    .input-styled { background:var(--bg3); color:var(--text); border:1px solid var(--border);
+      padding:10px 14px; border-radius:12px; font-size:0.87rem; width:155px; outline:none; }
+    .input-styled::placeholder { color:var(--muted); }
+    .input-styled:focus { border-color:var(--accent); }
+    .btn-secondary { background:var(--bg3); color:var(--accent-light); border:1px solid var(--border);
+      padding:10px 16px; border-radius:12px; font-size:0.87rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-secondary:hover { border-color:var(--accent); background:var(--accent-glow); }
+    .btn-upload { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none;
+      padding:10px 22px; border-radius:12px; font-size:0.87rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+    .btn-upload:hover { opacity:0.85; }
+    .btn-upload:disabled { opacity:0.35; cursor:not-allowed; }
+    #progress-bar-container { display:none; margin-top:16px; }
+    #progress-text { font-size:0.8rem; color:var(--muted); margin-bottom:8px; }
+    #progress-bar { width:100%; height:5px; background:var(--bg3); border-radius:4px; overflow:hidden; }
+    #progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));
+      border-radius:4px; width:0%; transition:width 0.3s; }
+
+    /* SEARCH */
+    .search-wrap { position:relative; margin-bottom:16px; }
+    .search-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--muted); }
+    .search-bar { background:var(--surface); border:1px solid var(--border); color:var(--text);
+      padding:12px 20px 12px 44px; border-radius:14px; width:100%; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+    .search-bar:focus { border-color:var(--accent); }
+    .search-bar::placeholder { color:var(--muted); }
+
+    /* TABS */
+    .folder-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+    .folder-tab { background:var(--surface); color:var(--muted); border:1px solid var(--border);
+      padding:7px 18px; border-radius:20px; cursor:pointer; font-size:0.82rem; font-weight:500; transition:all 0.2s; }
+    .folder-tab:hover { border-color:var(--accent-light); color:var(--accent-light); }
+    .folder-tab.active { background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff; border-color:transparent; font-weight:700; }
+
+    /* SONGS */
+    #songs-list { display:flex; flex-direction:column; gap:6px; }
+    .song-item { background:var(--surface); border:1px solid var(--border); border-radius:16px;
+      padding:14px 18px; display:flex; align-items:center; gap:14px; transition:all 0.2s; }
+    .song-item:hover { background:var(--bg3); border-color:rgba(59,130,246,0.25); }
+    .song-item.playing { background:rgba(59,130,246,0.08); border-color:rgba(59,130,246,0.4); }
+    .btn-play { background:linear-gradient(135deg,var(--accent),var(--accent2)); border:none; color:#fff;
+      cursor:pointer; width:40px; height:40px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.85rem;
+      box-shadow:0 4px 12px rgba(59,130,246,0.3); transition:transform 0.15s,box-shadow 0.15s; }
+    .btn-play:hover { transform:scale(1.08); box-shadow:0 6px 18px rgba(59,130,246,0.5); }
+    .song-info { flex:1; min-width:0; }
+    .song-name { font-size:0.92rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .song-folder { font-size:0.75rem; color:var(--muted); margin-top:3px; }
+    .song-date { font-size:0.72rem; color:var(--muted); white-space:nowrap; }
+    .song-actions { display:flex; gap:6px; align-items:center; }
+    .btn-dl { background:transparent; border:1px solid var(--border); color:var(--accent-light);
+      cursor:pointer; width:34px; height:34px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+    .btn-dl:hover { border-color:var(--accent); background:var(--accent-glow); }
+    .btn-del { background:transparent; border:1px solid var(--border); color:var(--muted);
+      cursor:pointer; width:34px; height:34px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+    .btn-del:hover { border-color:var(--danger); color:var(--danger); background:rgba(239,68,68,0.08); }
+
+    /* EMPTY */
+    .empty-state { text-align:center; padding:64px 0; color:var(--muted); }
+    .empty-icon { font-size:3rem; opacity:0.35; margin-bottom:12px; }
+
+    /* PLAYER */
     #player-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: #181818;
-      border-top: 1px solid #333;
-      padding: 12px 24px;
-      display: none;
-      align-items: center;
-      gap: 16px;
-      z-index: 50;
+      position:fixed; bottom:0; left:0; right:0;
+      background:rgba(15,23,42,0.96); backdrop-filter:blur(16px);
+      border-top:1px solid var(--border); padding:12px 28px;
+      display:none; align-items:center; gap:16px; z-index:50;
     }
-    #player-bar.active { display: flex; }
-    #player-song-name { font-size: 0.9rem; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1DB954; }
-    #player-audio { flex: 2; }
-    #player-close { background: transparent; border: none; color: #888; cursor: pointer; font-size: 1.4rem; }
-    main { padding-bottom: 90px; }
-    .empty-state {
-      text-align: center;
-      padding: 60px 0;
-      color: #444;
-    }
-    .empty-state p { margin-top: 8px; font-size: 0.9rem; }
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #1DB954;
-      color: #000;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s;
-      z-index: 100;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { background: #e74c3c; color: #fff; }
+    #player-bar.active { display:flex; }
+    .player-thumb { width:42px; height:42px; border-radius:10px; flex-shrink:0;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+    #player-song-name { font-size:0.87rem; font-weight:600; color:var(--accent-light);
+      width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
+    #player-audio { flex:1; min-width:0; accent-color:var(--accent); }
+    #player-close { background:transparent; border:none; color:var(--muted); cursor:pointer;
+      font-size:1.2rem; transition:color 0.2s; }
+    #player-close:hover { color:var(--text); }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:80px; right:24px; background:var(--accent); color:#fff;
+      padding:12px 20px; border-radius:12px; font-weight:600; font-size:0.87rem;
+      opacity:0; transform:translateY(8px); transition:all 0.3s; z-index:100;
+      box-shadow:0 8px 24px rgba(59,130,246,0.4); }
+    .toast.show { opacity:1; transform:translateY(0); }
+    .toast.error { background:var(--danger); box-shadow:0 8px 24px rgba(239,68,68,0.4); }
   </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login-screen">
-  <span style="font-size:5rem">🎵</span>
-  <h1>Mi Música</h1>
-  <p>Tu biblioteca musical en la nube</p>
+  <div class="logo-wrap">
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="56" height="56" rx="18" fill="url(#g1)"/>
+      <path d="M9 28 Q14.5 19 20 28 Q25.5 37 31 28 Q36.5 19 42 28" stroke="white" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="36" cy="36" r="4.5" fill="white" opacity="0.92"/>
+      <rect x="39.8" y="22" width="2.8" height="15" rx="1.4" fill="white" opacity="0.92"/>
+      <rect x="31" y="22" width="12" height="2.8" rx="1.4" fill="white" opacity="0.92"/>
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2563EB"/>
+          <stop offset="100%" stop-color="#0891B2"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div>
+      <div class="logo-name">Wavely</div>
+      <div class="logo-tag">Tu música en la nube</div>
+    </div>
+  </div>
   <button class="btn-google" onclick="signInWithGoogle()">
     <svg width="20" height="20" viewBox="0 0 48 48">
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -291,9 +206,24 @@
   </button>
 </div>
 
+<!-- APP -->
 <div id="app-screen">
   <header>
-    <h1>🎵 Mi Música</h1>
+    <div class="header-logo">
+      <svg width="30" height="30" viewBox="0 0 56 56" fill="none">
+        <rect width="56" height="56" rx="14" fill="url(#gh)"/>
+        <path d="M9 28 Q14.5 19 20 28 Q25.5 37 31 28 Q36.5 19 42 28" stroke="white" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <circle cx="36" cy="36" r="4.5" fill="white" opacity="0.92"/>
+        <rect x="39.8" y="22" width="2.8" height="15" rx="1.4" fill="white" opacity="0.92"/>
+        <rect x="31" y="22" width="12" height="2.8" rx="1.4" fill="white" opacity="0.92"/>
+        <defs>
+          <linearGradient id="gh" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#0891B2"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>Wavely</span>
+    </div>
     <div class="user-info">
       <img id="user-photo" src="" alt="">
       <span id="user-name"></span>
@@ -302,17 +232,18 @@
   </header>
 
   <main>
-    <div class="upload-section">
+    <div class="upload-card">
       <h2>Subir canciones</h2>
       <div class="upload-controls">
-        <label class="file-label" for="file-input">📁 Seleccionar MP3</label>
+        <label class="file-label" for="file-input">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Seleccionar MP3
+        </label>
         <input type="file" id="file-input" accept=".mp3,.m4a,.flac,.wav" multiple>
-        <select id="folder-select">
-          <option value="General">General</option>
-        </select>
-        <input type="text" id="new-folder-input" placeholder="Nueva carpeta...">
-        <button class="btn-primary" onclick="createFolder()">+ Crear</button>
-        <button class="btn-primary" id="upload-btn" onclick="uploadFiles()" disabled>⬆ Subir</button>
+        <select id="folder-select" class="select-styled"><option value="General">📁 General</option></select>
+        <input type="text" id="new-folder-input" class="input-styled" placeholder="Nueva carpeta...">
+        <button class="btn-secondary" onclick="createFolder()">+ Crear</button>
+        <button class="btn-upload" id="upload-btn" onclick="uploadFiles()" disabled>↑ Subir</button>
       </div>
       <div id="progress-bar-container">
         <div id="progress-text">Subiendo...</div>
@@ -320,7 +251,10 @@
       </div>
     </div>
 
-    <input type="text" class="search-bar" placeholder="🔍 Buscar canciones..." oninput="filterSongs(this.value)">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-bar" placeholder="Buscar canciones..." oninput="filterSongs(this.value)">
+    </div>
     <div class="folder-tabs" id="folder-tabs">
       <button class="folder-tab active" onclick="filterByFolder('todas', this)">Todas</button>
     </div>
@@ -331,10 +265,10 @@
 <div class="toast" id="toast"></div>
 
 <div id="player-bar">
-  <span style="font-size:1.5rem">🎵</span>
+  <div class="player-thumb">🎵</div>
   <span id="player-song-name">—</span>
   <audio id="player-audio" controls></audio>
-  <button id="player-close" onclick="closePlayer()" title="Cerrar">✕</button>
+  <button id="player-close" onclick="closePlayer()">✕</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -349,7 +283,6 @@
     messagingSenderId: "132593116859",
     appId: "1:132593116859:web:5e3dc68394225478542b9e"
   };
-
   const CLOUDINARY_CLOUD = 'dwzyrfqa8';
   const CLOUDINARY_PRESET = 'musica_preset';
 
@@ -357,10 +290,7 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  let currentUser = null;
-  let allSongs = [];
-  let selectedFolder = 'todas';
-  let searchQuery = '';
+  let currentUser = null, allSongs = [], selectedFolder = 'todas', searchQuery = '', currentPlayingId = null;
 
   auth.onAuthStateChanged(user => {
     if (user) {
@@ -376,14 +306,8 @@
     }
   });
 
-  function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-  }
-
-  function signOut() {
-    auth.signOut();
-  }
+  function signInWithGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+  function signOut() { auth.signOut(); }
 
   document.getElementById('file-input').addEventListener('change', function() {
     document.getElementById('upload-btn').disabled = this.files.length === 0;
@@ -393,67 +317,36 @@
     const files = document.getElementById('file-input').files;
     const folder = document.getElementById('folder-select').value;
     if (!files.length) return;
-
     const btn = document.getElementById('upload-btn');
     btn.disabled = true;
     document.getElementById('progress-bar-container').style.display = 'block';
-
     let uploaded = 0;
     for (const file of files) {
-      document.getElementById('progress-text').textContent =
-        `Subiendo ${file.name} (${uploaded + 1}/${files.length})...`;
-      document.getElementById('progress-fill').style.width =
-        `${(uploaded / files.length) * 100}%`;
-
+      document.getElementById('progress-text').textContent = `Subiendo ${file.name} (${uploaded+1}/${files.length})...`;
+      document.getElementById('progress-fill').style.width = `${(uploaded/files.length)*100}%`;
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_PRESET);
-        formData.append('resource_type', 'raw');
-        formData.append('folder', 'musica');
-
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`,
-          { method: 'POST', body: formData }
-        );
+        const fd = new FormData();
+        fd.append('file', file); fd.append('upload_preset', CLOUDINARY_PRESET);
+        fd.append('resource_type', 'raw'); fd.append('folder', 'musica');
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {method:'POST',body:fd});
         const data = await res.json();
-        console.log('Cloudinary response:', data);
-
         if (data.secure_url) {
-          await db.collection('usuarios')
-            .doc(currentUser.uid)
-            .collection('canciones')
-            .add({
-              nombre: file.name.replace(/\.(mp3|m4a|flac|wav)$/i, ''),
-              url: data.secure_url,
-              publicId: data.public_id,
-              artista: 'Artista desconocido',
-              album: 'Sin álbum',
-              carpeta: folder,
-              fechaSubida: firebase.firestore.Timestamp.now()
-            });
+          await db.collection('usuarios').doc(currentUser.uid).collection('canciones').add({
+            nombre: file.name.replace(/\.(mp3|m4a|flac|wav)$/i,''),
+            url: data.secure_url, publicId: data.public_id,
+            carpeta: folder, fechaSubida: firebase.firestore.Timestamp.now()
+          });
           uploaded++;
-        } else {
-          const errMsg = data.error?.message || JSON.stringify(data);
-          showToast(`Error: ${errMsg}`, true);
-          console.error('Cloudinary error:', errMsg);
-        }
-      } catch (e) {
-        showToast(`Error: ${e.message}`, true);
-        console.error(e);
-      }
+        } else { showToast('Error: '+(data.error?.message||''), true); }
+      } catch(e) { showToast('Error: '+e.message, true); }
     }
-
     document.getElementById('progress-fill').style.width = '100%';
     document.getElementById('progress-text').textContent = '¡Listo!';
-    setTimeout(() => {
-      document.getElementById('progress-bar-container').style.display = 'none';
-      document.getElementById('progress-fill').style.width = '0%';
-    }, 2000);
-
+    setTimeout(() => { document.getElementById('progress-bar-container').style.display='none';
+      document.getElementById('progress-fill').style.width='0%'; }, 2000);
     btn.disabled = false;
     document.getElementById('file-input').value = '';
-    showToast(`${uploaded} canción(es) subida(s) exitosamente`);
+    showToast(`✓ ${uploaded} canción(es) subida(s)`);
   }
 
   function createFolder() {
@@ -466,114 +359,110 @@
   }
 
   function addFolderOption(name) {
-    const select = document.getElementById('folder-select');
-    if ([...select.options].some(o => o.value === name)) return;
+    const sel = document.getElementById('folder-select');
+    if ([...sel.options].some(o => o.value===name)) return;
     const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-
+    opt.value = name; opt.textContent = '📁 '+name; sel.appendChild(opt);
     const tabs = document.getElementById('folder-tabs');
     if (!tabs.querySelector(`[data-folder="${name}"]`)) {
-      const btn = document.createElement('button');
-      btn.className = 'folder-tab';
-      btn.textContent = name;
-      btn.dataset.folder = name;
-      btn.onclick = () => filterByFolder(name, btn);
-      tabs.appendChild(btn);
+      const b = document.createElement('button');
+      b.className='folder-tab'; b.textContent=name; b.dataset.folder=name;
+      b.onclick=()=>filterByFolder(name,b); tabs.appendChild(b);
     }
   }
 
   function loadSongs() {
-    db.collection('usuarios')
-      .doc(currentUser.uid)
-      .collection('canciones')
-      .orderBy('fechaSubida', 'desc')
-      .onSnapshot(snap => {
-        allSongs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const folders = [...new Set(allSongs.map(s => s.carpeta || 'General'))];
-        folders.forEach(addFolderOption);
+    db.collection('usuarios').doc(currentUser.uid).collection('canciones')
+      .orderBy('fechaSubida','desc').onSnapshot(snap => {
+        allSongs = snap.docs.map(d=>({id:d.id,...d.data()}));
+        [...new Set(allSongs.map(s=>s.carpeta||'General'))].forEach(addFolderOption);
         renderSongs();
       });
   }
 
   function renderSongs() {
     let songs = allSongs;
-    if (selectedFolder !== 'todas') {
-      songs = songs.filter(s => (s.carpeta || 'General') === selectedFolder);
-    }
-    if (searchQuery) {
-      songs = songs.filter(s =>
-        s.nombre.toLowerCase().includes(searchQuery) ||
-        (s.artista || '').toLowerCase().includes(searchQuery)
-      );
-    }
-
+    if (selectedFolder!=='todas') songs = songs.filter(s=>(s.carpeta||'General')===selectedFolder);
+    if (searchQuery) songs = songs.filter(s=>s.nombre.toLowerCase().includes(searchQuery));
     const list = document.getElementById('songs-list');
     if (!songs.length) {
-      list.innerHTML = `<div class="empty-state">🎵<p>No hay canciones aquí aún</p></div>`;
+      list.innerHTML=`<div class="empty-state"><div class="empty-icon">🎵</div><p>No hay canciones aquí aún</p></div>`;
       return;
     }
-
     list.innerHTML = songs.map(song => `
-      <div class="song-item">
-        <button class="btn-play" onclick="playSong('${song.url}', '${song.nombre.replace(/'/g, "\\'")}')">▶</button>
+      <div class="song-item ${currentPlayingId===song.id?'playing':''}" id="item-${song.id}">
+        <button class="btn-play" onclick="playSong('${song.url}','${song.nombre.replace(/'/g,"\\'")}','${song.id}')">
+          ${currentPlayingId===song.id?'⏸':'▶'}
+        </button>
         <div class="song-info">
           <div class="song-name">${song.nombre}</div>
-          <div class="song-folder">📁 ${song.carpeta || 'General'}</div>
+          <div class="song-folder">📁 ${song.carpeta||'General'}</div>
         </div>
         <div class="song-date">${formatDate(song.fechaSubida)}</div>
-        <button class="btn-delete" onclick="deleteSong('${song.id}', '${song.nombre.replace(/'/g, "\\'")}')">🗑</button>
-      </div>
-    `).join('');
+        <div class="song-actions">
+          <button class="btn-dl" title="Descargar" onclick="downloadSong('${song.url}','${song.nombre.replace(/'/g,"\\'")}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <button class="btn-del" title="Eliminar" onclick="deleteSong('${song.id}','${song.nombre.replace(/'/g,"\\'")}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
   }
 
   function filterByFolder(folder, btn) {
     selectedFolder = folder;
-    document.querySelectorAll('.folder-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    renderSongs();
+    document.querySelectorAll('.folder-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active'); renderSongs();
   }
-
-  function filterSongs(query) {
-    searchQuery = query.toLowerCase();
-    renderSongs();
-  }
+  function filterSongs(q) { searchQuery=q.toLowerCase(); renderSongs(); }
 
   async function deleteSong(id, nombre) {
     if (!confirm(`¿Eliminar "${nombre}"?`)) return;
     await db.collection('usuarios').doc(currentUser.uid).collection('canciones').doc(id).delete();
+    if (currentPlayingId===id) closePlayer();
     showToast(`"${nombre}" eliminada`);
   }
 
-  function formatDate(ts) {
-    if (!ts) return '';
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
-    return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+  async function downloadSong(url, nombre) {
+    showToast('Descargando...');
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = nombre+'.mp3'; a.click();
+      URL.revokeObjectURL(a.href);
+    } catch(e) { window.open(url,'_blank'); }
   }
 
-  function playSong(url, nombre) {
-    const bar = document.getElementById('player-bar');
+  function playSong(url, nombre, id) {
     const audio = document.getElementById('player-audio');
-    const nameEl = document.getElementById('player-song-name');
-    nameEl.textContent = nombre;
-    audio.src = url;
-    audio.play();
-    bar.classList.add('active');
+    if (currentPlayingId===id) { audio.paused?audio.play():audio.pause(); return; }
+    currentPlayingId = id;
+    document.getElementById('player-song-name').textContent = nombre;
+    audio.src = url; audio.play();
+    document.getElementById('player-bar').classList.add('active');
+    renderSongs();
   }
 
   function closePlayer() {
     const audio = document.getElementById('player-audio');
-    audio.pause();
-    audio.src = '';
+    audio.pause(); audio.src=''; currentPlayingId=null;
     document.getElementById('player-bar').classList.remove('active');
+    renderSongs();
   }
 
-  function showToast(msg, isError = false) {
+  function formatDate(ts) {
+    if (!ts) return '';
+    const d = ts.toDate?ts.toDate():new Date(ts);
+    return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  function showToast(msg, isError=false) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show' + (isError ? ' error' : '');
-    setTimeout(() => t.className = 'toast', 3000);
+    t.textContent=msg; t.className='toast show'+(isError?' error':'');
+    setTimeout(()=>t.className='toast',3000);
   }
 </script>
 </body>
