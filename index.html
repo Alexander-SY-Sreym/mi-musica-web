@@ -1463,7 +1463,7 @@
   // ── Actualizar playSong para Media Session ──
   const _originalPlaySong = playSong;
 
-
+  function showToast(msg,isError=false) {
     const t=document.getElementById('toast');
     t.textContent=msg; t.className='toast show'+(isError?' error':'');
     setTimeout(()=>t.className='toast',3000);
