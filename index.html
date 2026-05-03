@@ -164,26 +164,117 @@
     /* PLAYER */
     #player-bar {
       position:fixed; bottom:0; left:0; right:0;
-      background:rgba(7,11,20,0.97); backdrop-filter:blur(18px);
-      border-top:1px solid rgba(99,102,241,0.25);
-      padding:12px 28px; display:none; align-items:center; gap:16px; z-index:50;
+      background:rgba(7,11,20,0.97); backdrop-filter:blur(20px);
+      border-top:1px solid rgba(99,102,241,0.2);
+      padding:10px 24px; display:none;
+      align-items:center; gap:16px; z-index:50; height:76px;
     }
     #player-bar::before { content:''; position:absolute; top:0; left:0; right:0; height:1px;
       background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),var(--cyan),transparent); }
     #player-bar.active { display:flex; }
-    .player-thumb { width:42px; height:42px; border-radius:10px; flex-shrink:0;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+    .player-left { display:flex; align-items:center; gap:12px; width:230px; min-width:0; flex-shrink:0; }
+    .player-cover { width:50px; height:50px; border-radius:10px; flex-shrink:0; overflow:hidden;
+      background:linear-gradient(135deg,#4F46E5,#7C3AED);
+      display:flex; align-items:center; justify-content:center;
       box-shadow:0 4px 14px rgba(99,102,241,0.4); }
-    /* Mini EQ canvas en player */
-    #mini-eq-canvas { width:60px; height:32px; flex-shrink:0; }
-    #player-song-name { font-size:0.87rem; font-weight:700; color:#A5B4FC;
-      width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-    #player-audio { flex:1; min-width:0; accent-color:var(--accent); }
-    #player-close { background:transparent; border:none; color:var(--muted); cursor:pointer;
-      font-size:1.3rem; transition:color 0.2s; }
-    #player-close:hover { color:var(--text); }
+    .player-cover img { width:100%; height:100%; object-fit:cover; }
+    .player-meta { min-width:0; }
+    .player-song-name { font-size:0.87rem; font-weight:700; color:var(--text);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .player-song-folder { font-size:0.72rem; color:var(--muted); margin-top:2px; }
+    .player-center { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .player-controls { display:flex; align-items:center; gap:12px; }
+    .pctrl { background:transparent; border:none; color:var(--muted); cursor:pointer;
+      width:32px; height:32px; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; transition:all 0.2s; }
+    .pctrl:hover { color:var(--text); background:rgba(255,255,255,0.06); }
+    .play-btn { background:white !important; color:#111 !important;
+      width:38px; height:38px; box-shadow:0 4px 14px rgba(255,255,255,0.15); }
+    .play-btn:hover { transform:scale(1.06); }
+    .player-progress { display:flex; align-items:center; gap:10px; width:100%; max-width:500px; }
+    .ptime { font-size:0.7rem; color:var(--muted); white-space:nowrap; min-width:28px; }
+    .progress-track { flex:1; height:4px; background:rgba(255,255,255,0.1); border-radius:4px;
+      cursor:pointer; position:relative; transition:height 0.1s; }
+    .progress-track:hover { height:6px; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--cyan));
+      border-radius:4px; width:0%; }
+    .progress-thumb { width:12px; height:12px; border-radius:50%; background:white;
+      position:absolute; top:50%; transform:translate(-50%,-50%);
+      left:0%; display:none; pointer-events:none; }
+    .progress-track:hover .progress-thumb { display:block; }
+    .player-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    #mini-eq-canvas { width:48px; height:28px; }
+    .pctrl-sm { background:transparent; border:none; color:var(--muted); cursor:pointer;
+      font-size:0.9rem; padding:6px 8px; border-radius:8px; transition:all 0.2s; }
+    .pctrl-sm:hover { color:var(--text); background:rgba(255,255,255,0.06); }
+    .volume-wrap { display:flex; align-items:center; gap:6px; }
+    .vol-slider { -webkit-appearance:none; width:68px; height:4px;
+      background:rgba(255,255,255,0.15); border-radius:4px; outline:none; cursor:pointer; }
+    .vol-slider::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px;
+      border-radius:50%; background:white; }
 
+    #eq-panel {
+      position:fixed; bottom:70px; left:50%; transform:translateX(-50%);
+      background:rgba(10,14,26,0.97); backdrop-filter:blur(20px);
+      border:1px solid rgba(99,102,241,0.3); border-radius:20px;
+      padding:18px 22px; z-index:60; width:min(96vw,720px);
+      display:none; flex-direction:column; gap:14px;
+      box-shadow:0 -4px 40px rgba(99,102,241,0.2);
+    }
+    #eq-panel.open { display:flex; }
+    .eq-panel-header { display:flex; align-items:center; justify-content:space-between; }
+    .eq-panel-header h3 { font-size:0.78rem; font-weight:700; color:#818CF8; letter-spacing:2px; text-transform:uppercase; }
+    .eq-close { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; }
+    .eq-presets { display:flex; gap:6px; flex-wrap:wrap; }
+    .eq-preset { background:var(--surface2); border:1px solid var(--border); color:var(--muted);
+      padding:5px 14px; border-radius:20px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .eq-preset:hover,.eq-preset.active { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border-color:transparent; }
+    .eq-bands { display:flex; gap:6px; align-items:flex-end; justify-content:center; }
+    .eq-band { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; min-width:0; }
+    .eq-band label { font-size:0.6rem; color:var(--muted); text-align:center; white-space:nowrap; }
+    .eq-band .db-val { font-size:0.68rem; color:#818CF8; font-weight:700; text-align:center; }
+    .eq-slider { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl;
+      width:28px; height:100px; background:transparent; cursor:pointer; outline:none; }
+    .eq-slider::-webkit-slider-runnable-track { width:4px; background:var(--surface2); border-radius:4px; }
+    .eq-slider::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--cyan)); box-shadow:0 0 8px rgba(99,102,241,0.5); margin-left:-6px; }
+    .eq-special { display:flex; gap:8px; flex-wrap:wrap; }
+    .eq-toggle { background:var(--surface2); border:1px solid var(--border); color:var(--muted);
+      padding:7px 16px; border-radius:12px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
+    .eq-toggle.on { background:rgba(99,102,241,0.2); border-color:var(--accent); color:#818CF8; }
+    .eq-toggle.danger.on { background:rgba(239,68,68,0.15); border-color:var(--danger); color:#F87171; }
+    .btn-move { background:transparent; border:1px solid var(--border); color:#818CF8;
+      cursor:pointer; width:34px; height:34px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+    .btn-move:hover { border-color:var(--accent); background:rgba(99,102,241,0.1); }
+    #move-modal {
+      position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:80;
+      display:none; align-items:center; justify-content:center;
+    }
+    #move-modal.open { display:flex; }
+    .move-box {
+      background:#0D1424; border:1px solid rgba(99,102,241,0.35);
+      border-radius:20px; padding:24px; width:min(92vw,380px);
+      display:flex; flex-direction:column; gap:14px;
+    }
+    .move-box h3 { font-size:0.95rem; font-weight:700; color:var(--text); }
+    .move-box p { font-size:0.8rem; color:var(--muted); }
+    .move-folders { display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
+    .move-folder-btn {
+      background:var(--surface2); border:1px solid var(--border); color:var(--text);
+      padding:10px 16px; border-radius:12px; text-align:left; cursor:pointer;
+      font-size:0.87rem; transition:all 0.2s; display:flex; align-items:center; gap:8px;
+    }
+    .move-folder-btn:hover { border-color:var(--accent); background:rgba(99,102,241,0.1); color:#818CF8; }
+    .move-folder-btn.current { border-color:rgba(99,102,241,0.4); color:#818CF8; opacity:0.5; cursor:default; }
+    .move-new-row { display:flex; gap:8px; }
+    .move-cancel { background:transparent; border:1px solid var(--border); color:var(--muted);
+      padding:10px 20px; border-radius:12px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; }
+    .move-cancel:hover { border-color:#818CF8; color:#818CF8; }
+    .btn-eq-open { background:transparent; border:1px solid var(--border); color:#818CF8;
+      padding:0; width:34px; height:34px; border-radius:10px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-size:1rem; transition:all 0.2s; flex-shrink:0; }
+    .btn-eq-open:hover { border-color:var(--accent); background:rgba(99,102,241,0.1); }
     .toast { position:fixed; bottom:82px; right:24px;
       background:linear-gradient(135deg,var(--accent),var(--accent2));
       color:#fff; padding:12px 20px; border-radius:12px; font-weight:700; font-size:0.85rem;
@@ -282,14 +373,91 @@
   </main>
 </div>
 
+<div id="move-modal">
+  <div class="move-box">
+    <h3>📁 Mover a carpeta</h3>
+    <p id="move-song-label">Canción: —</p>
+    <div class="move-folders" id="move-folders-list"></div>
+    <div class="move-new-row">
+      <input type="text" id="move-new-folder" class="input-styled" placeholder="Nueva carpeta..." style="flex:1">
+      <button class="btn-secondary" onclick="moveToNew()">+ Crear y mover</button>
+    </div>
+    <button class="move-cancel" onclick="closeMoveModal()">Cancelar</button>
+  </div>
+</div>
+
+<div id="eq-panel">
+  <div class="eq-panel-header">
+    <h3>🎛 Ecualizador</h3>
+    <button class="eq-close" onclick="toggleEQ()">✕</button>
+  </div>
+  <div class="eq-presets">
+    <button class="eq-preset active" onclick="applyPreset('flat',this)">Plano</button>
+    <button class="eq-preset" onclick="applyPreset('bass',this)">Bass Boost</button>
+    <button class="eq-preset" onclick="applyPreset('surround',this)">Envolvente</button>
+    <button class="eq-preset" onclick="applyPreset('vocal',this)">Vocal</button>
+    <button class="eq-preset" onclick="applyPreset('pop',this)">Pop</button>
+    <button class="eq-preset" onclick="applyPreset('rock',this)">Rock</button>
+    <button class="eq-preset" onclick="applyPreset('electronic',this)">Electronic</button>
+  </div>
+  <div class="eq-bands" id="eq-bands">
+    <!-- generadas por JS -->
+  </div>
+  <div class="eq-special">
+    <button class="eq-toggle" id="btn-noVoz" onclick="toggleFilter('noVoz')">🎤 Quitar voz</button>
+    <button class="eq-toggle" id="btn-soloVoz" onclick="toggleFilter('soloVoz')">🎙 Solo voz</button>
+    <button class="eq-toggle" id="btn-surround" onclick="toggleFilter('surround3d')">🔊 Surround 3D</button>
+    <button class="eq-toggle" id="btn-bass" onclick="toggleFilter('bassEnhance')">〰 Bass Enhance</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div id="player-bar">
-  <div class="player-thumb">🎵</div>
-  <canvas id="mini-eq-canvas"></canvas>
-  <span id="player-song-name">—</span>
-  <audio id="player-audio" controls crossorigin="anonymous"></audio>
-  <button id="player-close" onclick="closePlayer()">✕</button>
+  <!-- Portada + info -->
+  <div class="player-left">
+    <div class="player-cover" id="player-cover">
+      <svg width="22" height="22" viewBox="0 0 80 80"><use href="#eal-logo"/></svg>
+    </div>
+    <div class="player-meta">
+      <div class="player-song-name" id="player-song-name">—</div>
+      <div class="player-song-folder" id="player-song-folder"></div>
+    </div>
+  </div>
+  <!-- Controles centrales -->
+  <div class="player-center">
+    <div class="player-controls">
+      <button class="pctrl" id="btn-prev" onclick="prevSong()" title="Anterior">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="pctrl play-btn" id="btn-play-main" onclick="togglePlay()">
+        <svg id="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button class="pctrl" id="btn-next" onclick="nextSong()" title="Siguiente">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>
+      </button>
+    </div>
+    <div class="player-progress">
+      <span class="ptime" id="p-current">0:00</span>
+      <div class="progress-track" id="progress-track" onclick="seekAudio(event)">
+        <div class="progress-fill" id="progress-fill-bar"></div>
+        <div class="progress-thumb" id="progress-thumb"></div>
+      </div>
+      <span class="ptime" id="p-total">0:00</span>
+    </div>
+  </div>
+  <!-- Controles derecha -->
+  <div class="player-right">
+    <canvas id="mini-eq-canvas"></canvas>
+    <button class="pctrl-sm" onclick="toggleEQ()" title="Ecualizador">🎛</button>
+    <div class="volume-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--muted)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      <input type="range" class="vol-slider" id="vol-slider" min="0" max="1" step="0.02" value="1" oninput="setVolume(this.value)">
+    </div>
+    <button class="pctrl-sm close-btn" onclick="closePlayer()">✕</button>
+  </div>
+  <audio id="player-audio" crossorigin="anonymous" style="display:none"></audio>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -311,21 +479,160 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // ── Web Audio API ──
-  let audioCtx = null, analyser = null, source = null, dataArray = null, rafId = null;
+  // ── Web Audio API + EQ ──
+  let audioCtx=null, analyser=null, source=null, dataArray=null, rafId=null;
+  let eqFilters=[], specialFilters={}, activeSpecial={};
+
+  const EQ_BANDS = [
+    {label:'Sub',   freq:60,    type:'lowshelf'},
+    {label:'Bass',  freq:170,   type:'peaking'},
+    {label:'L-Mid', freq:310,   type:'peaking'},
+    {label:'Mid',   freq:1000,  type:'peaking'},
+    {label:'H-Mid', freq:3500,  type:'peaking'},
+    {label:'Pres',  freq:6000,  type:'peaking'},
+    {label:'Brill', freq:10000, type:'peaking'},
+    {label:'Air',   freq:16000, type:'highshelf'},
+  ];
+
+  const PRESETS = {
+    flat:       [ 0,  0,  0,  0,  0,  0,  0,  0],
+    bass:       [ 8,  6,  2,  0, -1,  0,  1,  2],
+    surround:   [ 4,  3,  0, -2,  2,  4,  5,  6],
+    vocal:      [-2, -2,  2,  6,  5,  3,  1,  0],
+    pop:        [-1,  2,  4,  4,  2,  0,  1,  2],
+    rock:       [ 5,  4,  0, -2,  2,  4,  3,  2],
+    electronic: [ 6,  5,  0, -2,  0,  3,  4,  5],
+  };
+
+  function buildEQBands() {
+    const container = document.getElementById('eq-bands');
+    container.innerHTML = EQ_BANDS.map((b,i) => `
+      <div class="eq-band">
+        <div class="db-val" id="dbval-${i}">0dB</div>
+        <input type="range" class="eq-slider" id="eq-${i}"
+          min="-12" max="12" value="0" step="0.5"
+          oninput="setEQBand(${i}, this.value)">
+        <label>${b.label}<br><span style="color:#374151;font-size:0.55rem">${b.freq>=1000?b.freq/1000+'k':b.freq}Hz</span></label>
+      </div>`).join('');
+  }
+  buildEQBands();
 
   function initAudio(audioEl) {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     if (source) { try { source.disconnect(); } catch(e){} }
     source = audioCtx.createMediaElementSource(audioEl);
+
+    // Crear 8 filtros EQ
+    eqFilters = EQ_BANDS.map(b => {
+      const f = audioCtx.createBiquadFilter();
+      f.type = b.type;
+      f.frequency.value = b.freq;
+      f.gain.value = 0;
+      f.Q.value = 1.2;
+      return f;
+    });
+
+    // Filtros especiales
+    specialFilters.noVozNotch = audioCtx.createBiquadFilter();
+    specialFilters.noVozNotch.type = 'notch';
+    specialFilters.noVozNotch.frequency.value = 2000;
+    specialFilters.noVozNotch.Q.value = 0.7;
+
+    specialFilters.noVozNotch2 = audioCtx.createBiquadFilter();
+    specialFilters.noVozNotch2.type = 'notch';
+    specialFilters.noVozNotch2.frequency.value = 3500;
+    specialFilters.noVozNotch2.Q.value = 0.7;
+
+    specialFilters.soloVozLow = audioCtx.createBiquadFilter();
+    specialFilters.soloVozLow.type = 'highpass';
+    specialFilters.soloVozLow.frequency.value = 300;
+
+    specialFilters.soloVozHigh = audioCtx.createBiquadFilter();
+    specialFilters.soloVozHigh.type = 'lowpass';
+    specialFilters.soloVozHigh.frequency.value = 5000;
+
+    specialFilters.surroundDelay = audioCtx.createDelay(0.05);
+    specialFilters.surroundDelay.delayTime.value = 0.03;
+    specialFilters.surroundGain = audioCtx.createGain();
+    specialFilters.surroundGain.gain.value = 0.3;
+
+    specialFilters.bassComp = audioCtx.createDynamicsCompressor();
+    specialFilters.bassComp.threshold.value = -20;
+    specialFilters.bassComp.ratio.value = 4;
+
     analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
+    analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.8;
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
     dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    rebuildChain();
+  }
+
+  function rebuildChain() {
+    if (!source || !audioCtx) return;
+    source.disconnect();
+    eqFilters.forEach(f => f.disconnect());
+    Object.values(specialFilters).forEach(f => { try { f.disconnect(); } catch(e){} });
+    analyser.disconnect();
+
+    let chain = [source, ...eqFilters];
+
+    if (activeSpecial.noVoz) {
+      chain.push(specialFilters.noVozNotch, specialFilters.noVozNotch2);
+    }
+    if (activeSpecial.soloVoz) {
+      chain.push(specialFilters.soloVozLow, specialFilters.soloVozHigh);
+    }
+    if (activeSpecial.surround3d) {
+      chain.push(specialFilters.surroundDelay);
+      specialFilters.surroundDelay.connect(specialFilters.surroundGain);
+      specialFilters.surroundGain.connect(analyser);
+    }
+    if (activeSpecial.bassEnhance) {
+      chain.push(specialFilters.bassComp);
+    }
+
+    chain.push(analyser);
+    for (let i=0; i<chain.length-1; i++) chain[i].connect(chain[i+1]);
+    analyser.connect(audioCtx.destination);
+  }
+
+  function setEQBand(i, val) {
+    const db = parseFloat(val);
+    document.getElementById('dbval-'+i).textContent = (db>0?'+':'')+db+'dB';
+    if (eqFilters[i]) eqFilters[i].gain.value = db;
+    // Quitar preset activo
+    document.querySelectorAll('.eq-preset').forEach(p=>p.classList.remove('active'));
+  }
+
+  function applyPreset(name, btn) {
+    document.querySelectorAll('.eq-preset').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const vals = PRESETS[name];
+    vals.forEach((v,i) => {
+      const sl = document.getElementById('eq-'+i);
+      if (sl) { sl.value = v; setEQBand(i, v); }
+    });
+  }
+
+  function toggleFilter(name) {
+    activeSpecial[name] = !activeSpecial[name];
+    const btn = document.getElementById('btn-'+name);
+    if (btn) btn.classList.toggle('on', activeSpecial[name]);
+    // Exclusivos: noVoz y soloVoz no pueden estar juntos
+    if (name==='noVoz' && activeSpecial.noVoz) {
+      activeSpecial.soloVoz=false;
+      document.getElementById('btn-soloVoz')?.classList.remove('on');
+    }
+    if (name==='soloVoz' && activeSpecial.soloVoz) {
+      activeSpecial.noVoz=false;
+      document.getElementById('btn-noVoz')?.classList.remove('on');
+    }
+    if (audioCtx) rebuildChain();
+  }
+
+  function toggleEQ() {
+    document.getElementById('eq-panel').classList.toggle('open');
   }
 
   // ── Canvas EQ fondo ──
@@ -448,9 +755,26 @@
         const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`,{method:'POST',body:fd});
         const data = await res.json();
         if (data.secure_url) {
+          // Extraer portada del ID3
+          let portadaUrl = null;
+          try {
+            const coverBlob = await extractCover(file);
+            if (coverBlob) {
+              const coverFd = new FormData();
+              coverFd.append('file', await fetch(coverBlob).then(r=>r.blob()));
+              coverFd.append('upload_preset', CLOUDINARY_PRESET);
+              coverFd.append('resource_type', 'image');
+              coverFd.append('folder', 'portadas');
+              const coverRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:coverFd});
+              const coverData = await coverRes.json();
+              if (coverData.secure_url) portadaUrl = coverData.secure_url;
+            }
+          } catch(e) { console.log('Sin portada:', e); }
+
           await db.collection('usuarios').doc(currentUser.uid).collection('canciones').add({
             nombre: file.name.replace(/\.(mp3|m4a|flac|wav)$/i,''),
             url: data.secure_url, publicId: data.public_id,
+            portada: portadaUrl,
             carpeta: folder, fechaSubida: firebase.firestore.Timestamp.now()
           });
           uploaded++;
@@ -505,15 +829,21 @@
     }
     list.innerHTML=songs.map(song=>`
       <div class="song-item ${currentPlayingId===song.id?'playing':''}" id="item-${song.id}">
-        <button class="btn-play" onclick="playSong('${song.url}','${song.nombre.replace(/'/g,"\\'")}','${song.id}')">
+        <button class="btn-play" onclick="playSong('${song.url}','${song.nombre.replace(/'/g,"\\'")}','${song.id}','${(song.portada||'').replace(/'/g,"\\'")}','${(song.carpeta||'General').replace(/'/g,"\\'")}')">
           ${currentPlayingId===song.id?'⏸':'▶'}
         </button>
+        <div style="width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;">
+          ${song.portada?`<img src="${song.portada}" style="width:100%;height:100%;object-fit:cover" alt="">`:`<svg width="16" height="16" viewBox="0 0 80 80"><use href="#eal-logo"/></svg>`}
+        </div>
         <div class="song-info">
           <div class="song-name">${song.nombre}</div>
           <div class="song-folder">📁 ${song.carpeta||'General'}</div>
         </div>
         <div class="song-date">${formatDate(song.fechaSubida)}</div>
         <div class="song-actions">
+          <button class="btn-move" title="Mover carpeta" onclick="openMoveModal('${song.id}','${song.nombre.replace(/'/g,"\\'")}','${(song.carpeta||'General').replace(/'/g,"\\'")}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          </button>
           <button class="btn-dl" title="Descargar" onclick="downloadSong('${song.url}','${song.nombre.replace(/'/g,"\\'")}')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </button>
@@ -531,6 +861,48 @@
   }
   function filterSongs(q) { searchQuery=q.toLowerCase(); renderSongs(); }
 
+  let movingSongId = null, movingSongCurrent = null;
+
+  function openMoveModal(id, nombre, carpetaActual) {
+    movingSongId = id;
+    movingSongCurrent = carpetaActual;
+    document.getElementById('move-song-label').textContent = '🎵 ' + nombre;
+    document.getElementById('move-new-folder').value = '';
+
+    // Listar todas las carpetas existentes
+    const carpetas = [...new Set(allSongs.map(s => s.carpeta||'General'))];
+    const list = document.getElementById('move-folders-list');
+    list.innerHTML = carpetas.map(c => `
+      <button class="move-folder-btn ${c===carpetaActual?'current':''}"
+        onclick="${c===carpetaActual?'':` moveSong('${c}')`}"
+        ${c===carpetaActual?'disabled':''}>
+        📁 ${c} ${c===carpetaActual?'<span style="font-size:0.72rem;margin-left:auto;opacity:0.6">(actual)</span>':''}
+      </button>`).join('');
+
+    document.getElementById('move-modal').classList.add('open');
+  }
+
+  function closeMoveModal() {
+    document.getElementById('move-modal').classList.remove('open');
+    movingSongId = null;
+  }
+
+  async function moveSong(nuevaCarpeta) {
+    if (!movingSongId) return;
+    await db.collection('usuarios').doc(currentUser.uid)
+      .collection('canciones').doc(movingSongId)
+      .update({ carpeta: nuevaCarpeta });
+    showToast(`Movida a "${nuevaCarpeta}"`);
+    closeMoveModal();
+  }
+
+  async function moveToNew() {
+    const name = document.getElementById('move-new-folder').value.trim();
+    if (!name) return;
+    addFolderOption(name);
+    await moveSong(name);
+  }
+
   async function deleteSong(id,nombre) {
     if (!confirm(`¿Eliminar "${nombre}"?`)) return;
     await db.collection('usuarios').doc(currentUser.uid).collection('canciones').doc(id).delete();
@@ -547,24 +919,144 @@
     } catch(e) { window.open(url,'_blank'); }
   }
 
-  function playSong(url,nombre,id) {
-    const audio=document.getElementById('player-audio');
-    if (currentPlayingId===id) { audio.paused?audio.play():audio.pause(); return; }
-    currentPlayingId=id;
-    document.getElementById('player-song-name').textContent=nombre;
-    audio.src=url;
-    // Inicializar Web Audio API con este elemento
-    try { initAudio(audio); } catch(e) { console.warn('AudioContext:', e); }
-    if (audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  // ── Extracción portada ID3 del archivo ──
+  async function extractCover(file) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const buf = new Uint8Array(e.target.result);
+        // Buscar ID3v2 header
+        if (buf[0]===0x49&&buf[1]===0x44&&buf[2]===0x33) {
+          let pos = 10;
+          const size = ((buf[6]&0x7f)<<21)|((buf[7]&0x7f)<<14)|((buf[8]&0x7f)<<7)|(buf[9]&0x7f);
+          while (pos < size+10) {
+            const fid = String.fromCharCode(buf[pos],buf[pos+1],buf[pos+2],buf[pos+3]);
+            const fsize = (buf[pos+4]<<24)|(buf[pos+5]<<16)|(buf[pos+6]<<8)|buf[pos+7];
+            if (fid==='APIC') {
+              let p=pos+10;
+              while(buf[p]!==0)p++; p++; // skip encoding+mime
+              p++; // skip picture type
+              while(buf[p]!==0)p++; p++; // skip description
+              const imgData = buf.slice(p, pos+10+fsize);
+              const blob = new Blob([imgData]);
+              resolve(URL.createObjectURL(blob));
+              return;
+            }
+            pos += 10 + fsize;
+            if (fsize<=0) break;
+          }
+        }
+        resolve(null);
+      };
+      reader.readAsArrayBuffer(file.slice(0, 200000));
+    });
+  }
+
+  // ── Player controls ──
+  let currentSongIndex = -1;
+  let isPlaying = false;
+
+  function getVisibleSongs() {
+    let songs = allSongs;
+    if (selectedFolder!=='todas') songs = songs.filter(s=>(s.carpeta||'General')===selectedFolder);
+    if (searchQuery) songs = songs.filter(s=>s.nombre.toLowerCase().includes(searchQuery));
+    return songs;
+  }
+
+  function updatePlayBtn(playing) {
+    isPlaying = playing;
+    document.getElementById('icon-play').style.display = playing?'none':'block';
+    document.getElementById('icon-pause').style.display = playing?'block':'none';
+  }
+
+  function togglePlay() {
+    const audio = document.getElementById('player-audio');
+    if (!audio.src) return;
+    if (audio.paused) { audio.play(); updatePlayBtn(true); }
+    else { audio.pause(); updatePlayBtn(false); }
+  }
+
+  function prevSong() {
+    const songs = getVisibleSongs();
+    if (!songs.length) return;
+    const idx = songs.findIndex(s=>s.id===currentPlayingId);
+    const prev = idx<=0 ? songs.length-1 : idx-1;
+    const s = songs[prev];
+    playSong(s.url, s.nombre, s.id, s.portada||null, s.carpeta||'General');
+  }
+
+  function nextSong() {
+    const songs = getVisibleSongs();
+    if (!songs.length) return;
+    const idx = songs.findIndex(s=>s.id===currentPlayingId);
+    const next = idx>=songs.length-1 ? 0 : idx+1;
+    const s = songs[next];
+    playSong(s.url, s.nombre, s.id, s.portada||null, s.carpeta||'General');
+  }
+
+  function setVolume(v) {
+    document.getElementById('player-audio').volume = v;
+  }
+
+  function seekAudio(e) {
+    const audio = document.getElementById('player-audio');
+    if (!audio.duration) return;
+    const track = document.getElementById('progress-track');
+    const rect = track.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX-rect.left)/rect.width));
+    audio.currentTime = pct * audio.duration;
+  }
+
+  function fmtTime(s) {
+    if (isNaN(s)) return '0:00';
+    const m=Math.floor(s/60), ss=Math.floor(s%60);
+    return m+':'+(ss<10?'0':'')+ss;
+  }
+
+  // Actualizar barra de progreso
+  document.getElementById('player-audio').addEventListener('timeupdate', () => {
+    const audio = document.getElementById('player-audio');
+    if (!audio.duration) return;
+    const pct = (audio.currentTime/audio.duration)*100;
+    document.getElementById('progress-fill-bar').style.width = pct+'%';
+    document.getElementById('progress-thumb').style.left = pct+'%';
+    document.getElementById('p-current').textContent = fmtTime(audio.currentTime);
+  });
+  document.getElementById('player-audio').addEventListener('loadedmetadata', () => {
+    document.getElementById('p-total').textContent = fmtTime(document.getElementById('player-audio').duration);
+  });
+  document.getElementById('player-audio').addEventListener('ended', nextSong);
+  document.getElementById('player-audio').addEventListener('play', ()=>updatePlayBtn(true));
+  document.getElementById('player-audio').addEventListener('pause', ()=>updatePlayBtn(false));
+
+  function playSong(url, nombre, id, portada, carpeta) {
+    const audio = document.getElementById('player-audio');
+    if (currentPlayingId===id) { togglePlay(); return; }
+    currentPlayingId = id;
+
+    // Portada
+    const cover = document.getElementById('player-cover');
+    if (portada) {
+      cover.innerHTML = `<img src="${portada}" alt="portada">`;
+    } else {
+      cover.innerHTML = `<svg width="22" height="22" viewBox="0 0 80 80"><use href="#eal-logo"/></svg>`;
+    }
+
+    document.querySelector('.player-song-name').textContent = nombre;
+    document.querySelector('.player-song-folder').textContent = '📁 '+(carpeta||'General');
+    audio.src = url;
+    try { initAudio(audio); } catch(e){}
+    if (audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
     audio.play();
     document.getElementById('player-bar').classList.add('active');
     renderSongs();
   }
 
   function closePlayer() {
-    const audio=document.getElementById('player-audio');
+    const audio = document.getElementById('player-audio');
     audio.pause(); audio.src=''; currentPlayingId=null;
-    analyser=null; dataArray=null;
+    analyser=null; dataArray=null; isPlaying=false;
+    updatePlayBtn(false);
     document.getElementById('player-bar').classList.remove('active');
     renderSongs();
   }
