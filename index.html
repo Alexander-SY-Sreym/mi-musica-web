@@ -558,18 +558,25 @@
 <div id="yt-panel">
   <div class="yt-box">
     <h3>▶️ Descargar de YouTube</h3>
-    <p style="font-size:0.8rem;color:var(--muted)">Pega el link de YouTube y descarga el MP3</p>
+    <p style="font-size:0.8rem;color:var(--muted)">Sin publicidad • Descarga directa o agrega a tu biblioteca</p>
     <div class="yt-input-row">
       <input type="text" class="yt-input" id="yt-url" placeholder="https://youtube.com/watch?v=...">
       <button class="btn-yt-search" onclick="fetchYTInfo()">Buscar</button>
     </div>
-    <div id="yt-result">
-      <div class="yt-thumb"><img id="yt-thumb-img" src="" alt=""></div>
+    <div id="yt-result" style="display:none;flex-direction:column;gap:12px">
+      <div class="yt-thumb"><img id="yt-thumb-img" src="" alt="" style="width:100%;border-radius:12px"></div>
       <div class="yt-info">
-        <h4 id="yt-title">—</h4>
-        <p id="yt-duration">—</p>
+        <h4 id="yt-title" style="font-size:0.95rem;font-weight:700;color:var(--text)">—</h4>
+        <p id="yt-duration" style="font-size:0.78rem;color:var(--muted);margin-top:4px">—</p>
       </div>
-      <button class="btn-yt-dl" id="btn-yt-dl" onclick="downloadFromYT()">⬇ Descargar MP3</button>
+      <!-- Barra de progreso -->
+      <div id="yt-status" style="display:none">
+        <div id="yt-status-text" style="font-size:0.82rem;color:var(--muted);margin-bottom:6px">—</div>
+        <div style="width:100%;height:5px;background:var(--surface3);border-radius:4px;overflow:hidden">
+          <div id="yt-status-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:4px;transition:width 0.3s"></div>
+        </div>
+      </div>
+      <button class="btn-yt-dl" id="btn-yt-dl" onclick="downloadFromYT()">⬇ Descargar / Agregar a biblioteca</button>
     </div>
     <button class="yt-close" onclick="closeYT()">Cancelar</button>
   </div>
@@ -657,6 +664,44 @@
   };
   const CLOUDINARY_CLOUD = 'dwzyrfqa8';
   const CLOUDINARY_PRESET = 'musica_preset';
+  const CLOUDINARY_API_KEY = '857225432223898';
+  const CLOUDINARY_SECRET = 'd4ZNBGQ6yEbMCXdPWEw2pdGTd94';
+
+  // Genera firma SHA1 para uploads firmados (archivos >10MB)
+  async function generateSignature(params) {
+    const sorted = Object.keys(params).sort();
+    const paramStr = sorted.map(k => `${k}=${params[k]}`).join('&');
+    const toSign = paramStr + CLOUDINARY_SECRET;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(toSign);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function uploadToCloudinary(file) {
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const folder = 'musica';
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('resource_type', 'raw');
+    fd.append('folder', folder);
+
+    if (file.size > 8 * 1024 * 1024) {
+      // Archivo grande: usar upload firmado
+      const params = { folder, timestamp };
+      const signature = await generateSignature(params);
+      fd.append('api_key', CLOUDINARY_API_KEY);
+      fd.append('timestamp', timestamp);
+      fd.append('signature', signature);
+    } else {
+      // Archivo pequeño: preset sin firma
+      fd.append('upload_preset', CLOUDINARY_PRESET);
+    }
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {method:'POST', body:fd});
+    return await res.json();
+  }
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
@@ -931,11 +976,7 @@
       document.getElementById('progress-text').textContent = `Subiendo ${file.name} (${uploaded+1}/${files.length})...`;
       document.getElementById('progress-fill').style.width = `${(uploaded/files.length)*100}%`;
       try {
-        const fd = new FormData();
-        fd.append('file',file); fd.append('upload_preset',CLOUDINARY_PRESET);
-        fd.append('resource_type','raw'); fd.append('folder','musica');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`,{method:'POST',body:fd});
-        const data = await res.json();
+        const data = await uploadToCloudinary(file);
         if (data.secure_url) {
           // Extraer portada del ID3
           let portadaUrl = null;
@@ -1419,45 +1460,170 @@
 
   // ── YOUTUBE DOWNLOADER ──
   let ytVideoId = null;
-  function openYT() { document.getElementById('yt-panel').classList.add('open'); }
-  function closeYT() { document.getElementById('yt-panel').classList.remove('open'); document.getElementById('yt-result').style.display='none'; }
+  let ytVideoTitle = '';
+  let ytVideoAuthor = '';
+
+  function openYT() {
+    document.getElementById('yt-panel').classList.add('open');
+    document.getElementById('yt-url').value = '';
+    document.getElementById('yt-result').style.display = 'none';
+    document.getElementById('yt-status').style.display = 'none';
+  }
+  function closeYT() {
+    document.getElementById('yt-panel').classList.remove('open');
+  }
 
   async function fetchYTInfo() {
     const url = document.getElementById('yt-url').value.trim();
     if (!url) return;
-    const match = url.match(/(?:v=|youtu\.be\/)([^&\n?]+)/);
+    const match = url.match(/(?:v=|youtu\.be\/|shorts\/)([^&\n?#]+)/);
     if (!match) { showToast('URL de YouTube inválida', true); return; }
     ytVideoId = match[1];
+
+    // Obtener info del video via oEmbed (sin API key, sin CORS)
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://youtube.com/watch?v=${ytVideoId}&format=json`);
+      const data = await res.json();
+      ytVideoTitle = data.title || 'Video de YouTube';
+      ytVideoAuthor = data.author_name || 'Desconocido';
+    } catch(e) {
+      ytVideoTitle = 'Video de YouTube';
+      ytVideoAuthor = 'Desconocido';
+    }
+
     document.getElementById('yt-thumb-img').src = `https://img.youtube.com/vi/${ytVideoId}/mqdefault.jpg`;
-    document.getElementById('yt-title').textContent = 'Video de YouTube';
-    document.getElementById('yt-duration').textContent = `ID: ${ytVideoId}`;
+    document.getElementById('yt-title').textContent = ytVideoTitle;
+    document.getElementById('yt-duration').textContent = ytVideoAuthor;
     document.getElementById('yt-result').style.display = 'flex';
+    document.getElementById('yt-status').style.display = 'none';
+  }
+
+  async function getYTDownloadUrl(videoId) {
+    const ytUrl = `https://youtube.com/watch?v=${videoId}`;
+
+    // Intento 1: cobalt.tools instancia principal
+    try {
+      const res = await fetch('https://cobalt.tools/api/json', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: ytUrl, aFormat: 'mp3', isAudioOnly: true })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url || data.stream) return data.url || data.stream;
+      }
+    } catch(_) {}
+
+    // Intento 2: instancia pública cobalt alternativa
+    try {
+      const res = await fetch('https://co.wuk.sh/api/json', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: ytUrl, aFormat: 'mp3', isAudioOnly: true })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url || data.stream) return data.url || data.stream;
+      }
+    } catch(_) {}
+
+    // Intento 3: loader.to API
+    try {
+      const res = await fetch(`https://loader.to/api/button/?url=${encodeURIComponent(ytUrl)}&f=mp3`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.id) {
+          // Esperar resultado
+          for (let i = 0; i < 12; i++) {
+            await new Promise(r => setTimeout(r, 3000));
+            const check = await fetch(`https://loader.to/api/info/?id=${data.id}`);
+            const info = await check.json();
+            if (info.success === 1 && info.download_url) return info.download_url;
+          }
+        }
+      }
+    } catch(_) {}
+
+    return null;
   }
 
   async function downloadFromYT() {
     if (!ytVideoId) return;
     const btn = document.getElementById('btn-yt-dl');
-    btn.textContent = 'Procesando...'; btn.disabled = true;
-    // Usar API gratuita y2mate/cobalt compatible
-    try {
-      // cobalt.tools API (abierta, sin key)
-      const res = await fetch('https://co.wuk.sh/api/json', {
-        method:'POST',
-        headers:{'Accept':'application/json','Content-Type':'application/json'},
-        body: JSON.stringify({ url:`https://youtube.com/watch?v=${ytVideoId}`, aFormat:'mp3', isAudioOnly:true })
-      });
-      const data = await res.json();
-      if (data.url || data.stream) {
-        const dlUrl = data.url || data.stream;
-        const a = document.createElement('a'); a.href=dlUrl; a.download='cancion.mp3'; a.click();
-        showToast('Descarga iniciada ✓');
-      } else { showToast('Error: '+JSON.stringify(data), true); }
-    } catch(e) {
-      // Fallback: abrir en nueva pestaña
-      window.open(`https://www.y2mate.com/youtube-mp3/${ytVideoId}`, '_blank');
-      showToast('Abriendo descargador externo...');
+    const status = document.getElementById('yt-status');
+    btn.disabled = true;
+    status.style.display = 'block';
+
+    // Opción: descargar directo al dispositivo o agregar a biblioteca
+    const addToLib = confirm('¿Deseas agregar esta canción a tu biblioteca EAL Music?\n\nSí = Agregar a biblioteca (sube a la nube)\nNo = Solo descargar el MP3 al dispositivo');
+
+    setYTStatus('⏳ Obteniendo enlace...', 0.1);
+
+    const dlUrl = await getYTDownloadUrl(ytVideoId);
+
+    if (!dlUrl) {
+      // Fallback: abrir en sitio externo sin publicidad
+      btn.disabled = false;
+      status.style.display = 'none';
+      showToast('Abriendo en descargador externo...', false);
+      window.open(`https://cobalt.tools/#${encodeURIComponent(`https://youtube.com/watch?v=${ytVideoId}`)}`, '_blank');
+      return;
     }
-    btn.textContent = '⬇ Descargar MP3'; btn.disabled = false;
+
+    if (!addToLib) {
+      // Solo descargar
+      setYTStatus('⬇ Descargando...', 0.5);
+      const a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = ytVideoTitle + '.mp3';
+      a.click();
+      setYTStatus('✓ Descarga iniciada', 1);
+      showToast('Descarga iniciada ✓');
+      btn.disabled = false;
+      return;
+    }
+
+    // Agregar a biblioteca: descargar como blob y subir a Cloudinary
+    try {
+      setYTStatus('⬇ Descargando MP3...', 0.2);
+      const audioRes = await fetch(dlUrl);
+      if (!audioRes.ok) throw new Error('Error al descargar');
+      const audioBlob = await audioRes.blob();
+      const audioFile = new File([audioBlob], ytVideoTitle + '.mp3', { type: 'audio/mpeg' });
+
+      setYTStatus('☁ Subiendo a biblioteca...', 0.6);
+      const data = await uploadToCloudinary(audioFile);
+
+      if (data.secure_url) {
+        setYTStatus('💾 Guardando...', 0.9);
+        await db.collection('usuarios').doc(currentUser.uid).collection('canciones').add({
+          nombre: ytVideoTitle,
+          url: data.secure_url,
+          publicId: data.public_id,
+          portada: `https://img.youtube.com/vi/${ytVideoId}/mqdefault.jpg`,
+          carpeta: 'YouTube',
+          artista: ytVideoAuthor,
+          fechaSubida: firebase.firestore.Timestamp.now()
+        });
+        setYTStatus('✓ ¡Agregada a tu biblioteca!', 1);
+        showToast(`✓ "${ytVideoTitle}" agregada a biblioteca`);
+        setTimeout(() => closeYT(), 2000);
+      } else {
+        throw new Error(data.error?.message || 'Error al subir');
+      }
+    } catch(e) {
+      setYTStatus('❌ Error: ' + e.message, 0);
+      showToast('Error: ' + e.message, true);
+    }
+
+    btn.disabled = false;
+  }
+
+  function setYTStatus(msg, progress) {
+    const status = document.getElementById('yt-status');
+    status.style.display = 'block';
+    document.getElementById('yt-status-text').textContent = msg;
+    document.getElementById('yt-status-bar').style.width = (progress * 100) + '%';
   }
 
   // ── Actualizar playSong para Media Session ──
